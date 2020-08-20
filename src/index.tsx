@@ -7,6 +7,7 @@ import "firebase/auth";
 import firebase from "firebase";
 
 import shuffle from './shuffle';
+import {elements} from './testdb';
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
@@ -22,91 +23,6 @@ var firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
-
-// DB構造
-const elements = [
-  './img/Mario.png',
-  './img/DonkeyKong.png',
-  './img/Link.png',
-  './img/Samus.png',
-  './img/darksum.png',
-  './img/Yoshi.png',
-  './img/Kirby.png',
-  './img/Fox.png',
-  './img/Pikachu.png',
-  './img/Luigi.png',
-  './img/Nes.png',
-  './img/Falcon.png',
-  './img/Purin.png',
-  './img/Peach.png',
-  './img/Daisy.png',
-  './img/Copper.png',
-  './img/Ice.png',
-  './img/Seak.png',
-  './img/Zelda.jpg',
-  './img/DocktorMario.png',
-  './img/pichu.png',
-  './img/Falco.png',
-  './img/Marus.png',
-  './img/Marus.png',
-  './img/lucina.png',
-  './img/YaungLink.png',
-  './img/ganon.png',
-  './img/myutwo.png',
-  './img/roi.png',
-  './img/kuromu.png',
-  './img/mrgw.png',
-  './img/metanaito.png',
-  './img/pit.png',
-  './img/burapi.png',
-  './img/zerosam.png',
-  './img/wrio.png',
-  './img/sneak.png',
-  './img/ike.png',
-  './img/poketore.png',
-  './img/dd.jpeg',
-  './img/ryocas.png',
-  './img/sonic.png',
-  './img/dedede.png',
-  './img/pikumin.png',
-  './img/rukario.png',
-  './img/robot.png',
-  './img/tounlink.png',
-  './img/uruhu.png',
-  './img/murabito.png',
-  './img/rockman.png',
-  './img/wiifit.png',
-  './img/rozeta.png',
-  './img/littlemac.png',
-  './img/gekko.png',
-  './img/mii.png',
-  './img/pal.png',
-  './img/packman.jpeg',
-  './img/luhure.png',
-  './img/shuruku.png',
-  './img/jr.png',
-  './img/dackhanto.png',
-  './img/ryu.png',
-  './img/ken.png',
-  './img/cloud.png',
-  './img/kamui.png',
-  './img/beyo.png',
-  './img/inku.png',
-  './img/ridori.png',
-  './img/simon.png',
-  './img/lihitar.png',
-  './img/kingcluru.png',
-  './img/sizue.png',
-  './img/gaogaen.png',
-  './img/packnfl.png',
-  './img/joker.png',
-  './img/yusha.png',
-  './img/banjo.png',
-  './img/tely.png',
-  './img/bereto.png',
-  './img/myenmyuen.jpg',
-];
-// DB構造終了
 
 
 // function draw(cards: any[], deck: any[], select:any[]){
@@ -144,7 +60,7 @@ function App() {
   //     cardsFirst[(i-1)*4 + 3] = {element: samus};
   // }
   for (let i = 0; i < elements.length; i++) {
-      cardsFirst[i] = {element: elements[i]};
+      cardsFirst[i] = {element: elements[i].img};
   }
 
   cardsFirst = shuffle(cardsFirst);
