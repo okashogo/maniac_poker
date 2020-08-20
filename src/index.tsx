@@ -60,7 +60,7 @@ function App() {
   //     cardsFirst[(i-1)*4 + 3] = {element: samus};
   // }
   for (let i = 0; i < elements.length; i++) {
-      cardsFirst[i] = {element: elements[i].img};
+      cardsFirst[i] = {element: elements[i].img, name: elements[i].name};
   }
 
   cardsFirst = shuffle(cardsFirst);
@@ -78,6 +78,8 @@ function App() {
         {cards.map((data, key) => {
           if (key < 5) {
             return (
+              <div>
+                {data.name}
                 <h1 style={{ background: bgcChange(key,select) }}
                     onClick={() => {
                     let newSetSelect:any[] = select.concat();
@@ -96,6 +98,7 @@ function App() {
                 >
                   <Img src={data.element}/>
                 </h1>
+              </div>
             )
           }
         })}
