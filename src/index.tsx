@@ -73,12 +73,12 @@ function App() {
   const [isShow, setShow] = useState(true);
 
   const element = (
-    <div>
-      <div style={{display: "flex"}}>
+    <div className="container-fluid">
+      <div style={{display: "flex"}} className="row">
         {cards.map((data, key) => {
           if (key < 5) {
             return (
-              <div>
+              <div className="col-2 text-center">
                 {data.name}
                 <h1 style={{ background: bgcChange(key,select) }}
                     onClick={() => {

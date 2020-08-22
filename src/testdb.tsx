@@ -77,6 +77,6 @@ export const elements = [
   {img:'./img/banjo.png', name: "バンジョー＆カズーイ"},
   {img:'./img/tely.png', name: "テリー"},
   {img:'./img/bereto.png', name: "ベレト/ベレズ"},
-  {img:'./img/myenmyuen.jpg', name: "ミェンミェン"},
+  {img:'./img/myenmyen.jpg', name: "ミェンミェン"},
 ];
 // DB構造終了
