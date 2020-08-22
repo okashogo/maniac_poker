@@ -25,16 +25,25 @@ firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
 
-// function draw(cards: any[], deck: any[], select:any[]){
-function draw(cards: any[], select:any[]){
-  // 最初のnullはカウントしない。
-  var cardsTmp = cards.concat();
+function drawHand(decks: any[], hands:any[] , select: any[]){
+  var decksTmp = decks.concat();
+  var handsTmp = hands.concat();
+
   for (let i = 1; i < select.length; i++) {
-      console.log(select[i]);
-      cardsTmp[select[i]] = cardsTmp.slice(-1)[0];
-      cardsTmp.pop();
+      handsTmp[select[i]] = decksTmp.slice(-1)[0];
+      decksTmp.pop();
   }
-  return cardsTmp;
+  return handsTmp;
+}
+
+function drawDeck(decks: any[], select:any[]){
+  // 最初のnullはカウントしない。
+  var decksTmp = decks.concat();
+  for (let i = 1; i < select.length; i++) {
+      decksTmp[select[i]] = decksTmp.slice(-1)[0];
+      decksTmp.pop();
+  }
+  return decksTmp;
 }
 
 function Img(props:any){
@@ -68,14 +77,15 @@ function App() {
 
   var handFirst = cardsFirst.slice(0, 5);
   var deckFirst = cardsFirst.slice(5);
-  const [cards, setCard] = useState(cardsFirst);
+  const [hands, sethand] = useState(handFirst);
+  const [decks, setdeck] = useState(deckFirst);
   const [select, setSelect] = useState([null]);
   const [isShow, setShow] = useState(true);
 
   const element = (
     <div className="container-fluid">
       <div style={{display: "flex"}} className="row">
-        {cards.map((data, key) => {
+        {hands.map((data, key) => {
           if (key < 5) {
             return (
               <div className="col-2 text-center">
@@ -105,7 +115,8 @@ function App() {
       </div>
       { isShow &&
         <button onClick={() => {
-          setCard(draw(cards, select));
+          sethand(drawHand(decks, hands, select));
+          setdeck(drawDeck(decks, select));
           setSelect([null]);
           setShow(false);
         }}>
