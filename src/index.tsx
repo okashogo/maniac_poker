@@ -49,7 +49,7 @@ function drawDeck(decks: any[], select:any[]){
 function Img(props:any){
   // 最初のnullはカウントしない
   console.log(props);
-  return <img style={{ width:"80px" }} src={props.src} />;
+  return <img style={{ height:"150px" }} src={props.src} />;
 }
 
 function bgcChange(key: number,select:any[]){
@@ -108,6 +108,8 @@ function App() {
                 >
                   <Img src={data.element}/>
                 </h1>
+                <div>{data.name}</div>
+                <div>{data.element}</div>
               </div>
             )
           }
