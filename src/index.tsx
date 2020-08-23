@@ -27,7 +27,6 @@ firebase.analytics();
 
 function drawScore(hands: any[], scoresLength: number) {
   var handsTmp = hands.concat();
-  var scoresTmp = Array(scoresLength).fill(null);
   var seriesList: any[] = [];
   var colorList: any[] = [];
 
@@ -89,24 +88,37 @@ function drawScore(hands: any[], scoresLength: number) {
   }
 
 
-  // ここから、加点の計算をする。
-  // 返り値は、[series: "フルハウス", color: "ワンペア"]
-  // seriesList.includes(5) これをなんとか、[1]から5を取得する
+  // 加点の計算
+  var pairName: string = "";
+  var pairsCount: number = 0;
   if(getHashProperties(seriesList).includes(5)){
-    console.log("ファイブカード x " + pairCount(getHashProperties(seriesList), 5));
+    // console.log("ファイブカード x " + pairCount(getHashProperties(seriesList), 5));
+    pairName = "ファイブカード x ";
+    pairsCount = pairCount(getHashProperties(seriesList), 5);
   }
   else if(getHashProperties(seriesList).includes(4)){
-    console.log("フォアカード x " + pairCount(getHashProperties(seriesList), 4));
+    // console.log("フォアカード x " + pairCount(getHashProperties(seriesList), 4));
+    pairName = "フォアカード x ";
+    pairsCount = pairCount(getHashProperties(seriesList), 4);
+
   }
   else if(getHashProperties(seriesList).includes(3)){
-    console.log("スリーカード x " + pairCount(getHashProperties(seriesList), 3));
+    // console.log("スリーカード x " + pairCount(getHashProperties(seriesList), 3));
+    pairName = "スリーカード x ";
+    pairsCount = pairCount(getHashProperties(seriesList), 3);
   }
   else if(getHashProperties(seriesList).includes(2)){
-    console.log("ペア x " + pairCount(getHashProperties(seriesList), 2));
+    // console.log("ペア x " + pairCount(getHashProperties(seriesList), 2));
+    pairName = "ペア x ";
+    pairsCount = pairCount(getHashProperties(seriesList), 2);
+  }
+  else{
+    return;
   }
 
+  var scoresTmp = Array(scoresLength).fill(null);
   for (let i = 0; i < scoresTmp.length; i++) {
-    scoresTmp[i] = 3;
+    scoresTmp[i] = {pairName: pairName, pairsCount: pairsCount};
   }
 
   return scoresTmp;
@@ -190,7 +202,7 @@ function App() {
   const [decks, setdeck] = useState(deckFirst);
   const [select, setSelect] = useState([null]);
   const [isShow, setShow] = useState(true);
-  const [scores, setScore] = useState(Array(Object.keys(elements[0]).length - 2).fill(1));
+  const [scores, setScore]:any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({pairName: "",pairsCount: 0}));
 
   const element = (
     <div className="container-fluid">
@@ -237,8 +249,8 @@ function App() {
               )
             })}
             <div className="col-1">
-              {scores.map((data) => {
-                return <div>{data}点</div>
+              {scores.map((data:{[key:string] :any; }) => {
+                return <div>{data.pairName}{data.pairsCount}点</div>
               })}
             </div>
           </div>
