@@ -88,14 +88,46 @@ function drawScore(hands: any[], scoresLength: number) {
     }
   }
 
-  console.log(seriesList);
-  console.log(colorList);
+
+  // ここから、加点の計算をする。
+  // 返り値は、[series: "フルハウス", color: "ワンペア"]
+  // seriesList.includes(5) これをなんとか、[1]から5を取得する
+  if(getHashProperties(seriesList).includes(5)){
+    console.log("ファイブカード x " + pairCount(getHashProperties(seriesList), 5));
+  }
+  else if(getHashProperties(seriesList).includes(4)){
+    console.log("フォアカード x " + pairCount(getHashProperties(seriesList), 4));
+  }
+  else if(getHashProperties(seriesList).includes(3)){
+    console.log("スリーカード x " + pairCount(getHashProperties(seriesList), 3));
+  }
+  else if(getHashProperties(seriesList).includes(2)){
+    console.log("ペア x " + pairCount(getHashProperties(seriesList), 2));
+  }
 
   for (let i = 0; i < scoresTmp.length; i++) {
     scoresTmp[i] = 3;
   }
 
   return scoresTmp;
+}
+
+function getHashProperties(a:any[]){
+  let r:number[] = [];
+  for (let i = 0; i < a.length; i++) {
+      r.push(a[i][1]);
+  }
+  return r;
+}
+
+function pairCount(list: number[], pairNum: number){
+  var pairCount:number = 0;
+  for (let i = 0; i < list.length; i++) {
+      if(list[i] == pairNum){
+        pairCount++;
+      }
+  }
+  return pairCount;
 }
 
 function drawHand(decks: any[], hands: any[], select: any[]) {
@@ -214,9 +246,11 @@ function App() {
       </div>
       {isShow &&
         <button onClick={() => {
-          sethand(drawHand(decks, hands, select));
+          // output の結果を drawScore に渡す
+          var outputHnand = drawHand(decks, hands, select);
+          sethand(outputHnand);
           setdeck(drawDeck(decks, select));
-          setScore(drawScore(hands, scores.length));
+          setScore(drawScore(outputHnand, scores.length));
           setSelect([null]);
           setShow(false);
         }}>

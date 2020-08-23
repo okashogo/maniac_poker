@@ -64,7 +64,7 @@ export const elements = [
   {img:'./img/cloud.png', name: "クラウド", series: "FINAL FANTASY", color: "黒"},
   {img:'./img/kamui.png', name: "カムイ", series: "ファイアーエンブレム", color: "白"},
   {img:'./img/beyo.png', name: "ベヨネッタ", series: "BAYONETA", color: "黒"},
-  {img:'./img/inku.png', name: "インクリング", series: "Splatoon", color: "赤"},
+  {img:'./img/inku.png', name: "インクリング", series: "Splatoon", color: ["赤", "青", "緑", "黄"]},
   {img:'./img/ridori.png', name: "リドリー", series: "METROID", color: "黒"},
   {img:'./img/simon.png', name: "シモン", series: "悪魔城 ドラキュラ", color: "茶"},
   {img:'./img/lihitar.png', name: "リヒター", series: "悪魔城 ドラキュラ", color: "青"},
