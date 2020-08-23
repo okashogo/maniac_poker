@@ -128,7 +128,11 @@ function App() {
             })}
             <div className="col-1">
               {scores.map((data:{[key:string] :any; }) => {
-                return <div>{data.pairName}{data.pairsCount}点</div>
+                if(data.length !== 0){
+                  return <div>{data.pairName}{data.pairsCount}点</div>
+                }else{
+                  return <div>ペアなし</div>
+                }
               })}
             </div>
           </div>
@@ -141,6 +145,7 @@ function App() {
           sethand(outputHnand);
           setdeck(drawDeck(decks, select));
           setScore(drawScore(outputHnand, scores.length));
+          console.log(drawScore(outputHnand, scores.length));
           setSelect([null]);
           setShow(false);
         }}>

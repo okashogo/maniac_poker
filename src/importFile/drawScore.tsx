@@ -86,7 +86,7 @@ export default function drawScore(hands: any[], scoresLength: number) {
     pairsCount = pairCount(getHashProperties(seriesList), 2);
   }
   else{
-    return;
+    return Array(Object.keys(scoresLength - 2).fill(""));
   }
 
   var scoresTmp = Array(scoresLength).fill(null);
