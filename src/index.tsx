@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
@@ -108,6 +108,15 @@ function App() {
   const [scores, setScore]:any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({pairName: "",pairsCount: 0}));
   const [total, setTotal] = useState(0);
 
+  useEffect(() => {
+    collection_game.onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().applyName !== "nobody") {
+          console.log('applyed!!!');
+        }
+      })
+    });
+  });
 
   const element = (
     <div className="container-fluid">
