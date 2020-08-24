@@ -37,6 +37,30 @@ function drawHand(decks: any[], hands: any[], select: any[]) {
   return handsTmp;
 }
 
+function calTotal(scores: any[]){
+  var total: number = 0;
+  console.log(scores);
+  for (let i = 0; i < scores.length; i++) {
+      if(scores[i].pairName === "ファイブカード x "){
+        total += scores[i].pairsCount * 10;
+        continue;
+      }
+      else if(scores[i].pairName === "フォアカード x "){
+        total += scores[i].pairsCount * 5;
+        continue;
+      }
+      else if(scores[i].pairName === "スリーカード x "){
+        total += scores[i].pairsCount * 3;
+        continue;
+      }
+      else if(scores[i].pairName === "ペア x "){
+        total += scores[i].pairsCount * 1;
+        continue;
+      }
+  }
+  return total;
+}
+
 function drawDeck(decks: any[], select: any[]) {
   // 最初のnullはカウントしない。
   var decksTmp = decks.concat();
@@ -79,8 +103,9 @@ function App() {
   const [hands, sethand] = useState(handFirst);
   const [decks, setdeck] = useState(deckFirst);
   const [select, setSelect] = useState([null]);
-  const [isShow, setShow] = useState(true);
+  const [canDraw, setCanDraw] = useState(true);
   const [scores, setScore]:any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({pairName: "",pairsCount: 0}));
+  const [total, setTotal] = useState(0);
 
   const element = (
     <div className="container-fluid">
@@ -89,22 +114,24 @@ function App() {
           <div className="col-1"></div>
           {hands.map((data, key) => {
             return (
-              <div className="col-2 text-center" style={{ background: bgcChange(key, select) }}>
+              <div className="col-2 text-center"
+                   style={{ background: bgcChange(key, select) }}
+                   onClick={() => {
+                    let newSetSelect: any[] = select.concat();
+                    if (!newSetSelect.includes(key)) {
+                      newSetSelect.push(key);
+                    } else {
+                      newSetSelect.forEach((item, index) => {
+                        if (item === key) {
+                          newSetSelect.splice(index, 1);
+                        }
+                      });
+                    }
+                    setSelect(newSetSelect);
+                  }}
+              >
                 {data.name}
-                <h1 onClick={() => {
-                  let newSetSelect: any[] = select.concat();
-                  if (!newSetSelect.includes(key)) {
-                    newSetSelect.push(key);
-                  } else {
-                    newSetSelect.forEach((item, index) => {
-                      if (item === key) {
-                        newSetSelect.splice(index, 1);
-                      }
-                    });
-                  }
-                  setSelect(newSetSelect);
-                }}
-                >
+                <h1>
                   <Img src={data.element} />
                 </h1>
               </div>
@@ -112,9 +139,10 @@ function App() {
           })}
           <div className="col-1">得点</div>
         </div>
-        {!isShow &&
+        {!canDraw &&
           <div style={{ display: "flex" }} className="row">
             <div className="col-1">
+              // ここを配列に変えるだけ
               <div>シリーズ</div>
               <div>イメージカラー</div>
             </div>
@@ -135,18 +163,23 @@ function App() {
                 }
               })}
             </div>
+            <h1 style={{ color: "red"}}>{total}</h1>
           </div>
         }
       </div>
-      {isShow &&
+      {canDraw &&
         <button onClick={() => {
           // output の結果を drawScore に渡す
           var outputHnand = drawHand(decks, hands, select);
+          var outputScores = drawScore(outputHnand, scores.length);
+          var outputotal = calTotal(outputScores);
           sethand(outputHnand);
           setdeck(drawDeck(decks, select));
-          setScore(drawScore(outputHnand, scores.length));
+          setScore(outputScores);
+          setTotal(calTotal(outputScores));
+          console.log(outputotal);
           setSelect([null]);
-          setShow(false);
+          setCanDraw(false);
         }}>
           ドロー
         </button>

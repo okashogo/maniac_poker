@@ -1,3 +1,7 @@
+export const title = [
+  {title: "スマブラ", element1: "シリーズ", element2: "イメージカラー"},
+]
+
 export const elements = [
   {img:'./img/Mario.png', name: "マリオ", series: "スーパーマリオ", color: "赤"},
   {img:'./img/DonkeyKong.png', name: "ドンキーコング", series: "ドンキーコング", color: "茶"},
