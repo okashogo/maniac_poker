@@ -10,6 +10,9 @@ import { firebaseConfig } from './firebaseConfig';
 import shuffle from './importFile/shuffle';
 import drawScore from './importFile/drawScore';
 import { titles, elements } from './importFile/testdb';
+import drawHand from './importFile/drawHand';
+import calTotal from './importFile/calTotal';
+import drawDeck from './importFile/drawDeck';
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -19,51 +22,6 @@ export const auth = firebase.auth();
 export const db = firebase.firestore();
 
 const collection_game = db.collection('game');
-
-function drawHand(decks: any[], hands: any[], select: any[]) {
-  var decksTmp = decks.concat();
-  var handsTmp = hands.concat();
-
-  for (let i = 1; i < select.length; i++) {
-    handsTmp[select[i]] = decksTmp.slice(-1)[0];
-    decksTmp.pop();
-  }
-  return handsTmp;
-}
-
-function calTotal(scores: any[]) {
-  var total: number = 0;
-  console.log(scores);
-  for (let i = 0; i < scores.length; i++) {
-    if (scores[i].pairName === "ファイブカード x ") {
-      total += scores[i].pairsCount * 10;
-      continue;
-    }
-    else if (scores[i].pairName === "フォアカード x ") {
-      total += scores[i].pairsCount * 5;
-      continue;
-    }
-    else if (scores[i].pairName === "スリーカード x ") {
-      total += scores[i].pairsCount * 3;
-      continue;
-    }
-    else if (scores[i].pairName === "ペア x ") {
-      total += scores[i].pairsCount * 1;
-      continue;
-    }
-  }
-  return total;
-}
-
-function drawDeck(decks: any[], select: any[]) {
-  // 最初のnullはカウントしない。
-  var decksTmp = decks.concat();
-  for (let i = 1; i < select.length; i++) {
-    decksTmp[select[i]] = decksTmp.slice(-1)[0];
-    decksTmp.pop();
-  }
-  return decksTmp;
-}
 
 function Img(props: any) {
   // 最初のnullはカウントしない
