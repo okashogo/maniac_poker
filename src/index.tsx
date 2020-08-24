@@ -15,6 +15,10 @@ import { titles, elements } from './importFile/testdb';
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
+export const auth = firebase.auth();
+export const db = firebase.firestore();
+
+const collection_game = db.collection('game');
 
 function drawHand(decks: any[], hands: any[], select: any[]) {
   var decksTmp = decks.concat();
@@ -88,6 +92,13 @@ function App() {
   cardsFirst = shuffle(cardsFirst);
   // 初期設定終了
 
+  const [gameID, setGameID] = useState("");
+  const [myname, setMyname] = useState("");
+  const [enemyname, setEnemyname] = useState("");
+  const [roomID, setRoomID] = useState(0);
+  const [applyID, setApplyID] = useState(0);
+  const [startedFlag, setStartedFlag] = useState(false);
+
   var handFirst = cardsFirst.slice(0, 5);
   var deckFirst = cardsFirst.slice(5);
   const [hands, sethand] = useState(handFirst);
@@ -97,67 +108,155 @@ function App() {
   const [scores, setScore]:any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({pairName: "",pairsCount: 0}));
   const [total, setTotal] = useState(0);
 
+
   const element = (
     <div className="container-fluid">
-      <div>
-        <div style={{ display: "flex" }} className="row">
-          <div className="col-1"></div>
-          {hands.map((data, key) => {
-            return (
-              <div className="col-2 text-center"
-                   style={{ background: bgcChange(key, select) }}
-                   onClick={() => {
-                    let newSetSelect: any[] = select.concat();
-                    if (!newSetSelect.includes(key)) {
-                      newSetSelect.push(key);
-                    } else {
-                      newSetSelect.forEach((item, index) => {
-                        if (item === key) {
-                          newSetSelect.splice(index, 1);
-                        }
+      {!startedFlag &&
+        <div>
+          <div>ニックネーム：<input placeholder="ニックネームを入力"
+              onChange={(e)=>
+                setMyname(e.target.value)
+              }/>
+          </div>
+          <div>部屋を作る：<input placeholder="半角数字を入力"
+              onChange={(e)=>
+                setRoomID(Number(e.target.value))
+              } />
+              <button className="btn btn-primary"
+              onClick={() => {
+                //ランダムなGammeIDを作成
+                var l = 8;
+                var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+                var cl = c.length;
+                var gameIDFirst = "";
+                for(var i=0; i<l; i++){
+                  gameIDFirst += c[Math.floor(Math.random()*cl)];
+                }
+                setGameID(gameIDFirst);
+
+                // DBにaddする
+                collection_game.add({
+                  gameID: gameIDFirst,
+                  roomName: myname,
+                  roomID: roomID,
+                  applyName: 'nobody',
+                })
+                .then(doc => {
+                  console.log(doc);
+                  setStartedFlag(true);
+                })
+                .catch(error => {
+                  console.log(error);
+                })
+              }}>
+              部屋を作る
+              </button>
+          </div>
+          <div>参加する：<input placeholder="半角数字を入力"
+              onChange={(e)=>
+                setApplyID(Number(e.target.value))
+          } />
+              <button className="btn btn-primary"
+              onClick={() => {
+                collection_game.where('applyName', '==', 'nobody').where('roomID', '==', applyID).get()
+                .then(snapshot => {
+                  if (snapshot.empty) {
+                    return;
+                  }
+                  snapshot.forEach(doc => {
+                    console.log(doc);
+                    collection_game.doc(doc.id)
+                      .set({
+                        gameID: doc.data().gameID,
+                        roomName: doc.data().roomName,
+                        roomID: doc.data().roomID,
+                        applyName: myname,
+                      })
+                      .then(snapshot => {
+                        console.log(snapshot);
+                        setGameID(doc.data().gameID);
+                        setEnemyname(doc.data().roomName);
+                        setStartedFlag(true);
+                      })
+                      .catch(err => {
+                        console.log(err);
                       });
-                    }
-                    setSelect(newSetSelect);
-                  }}
-              >
-                {data.name}
-                <h1>
-                  <Img src={data.element} />
-                </h1>
-              </div>
-            )
-          })}
-          <div className="col-1">得点</div>
+
+          });
+        })
+        .catch(err => {
+            console.log('Error getting documents', err);
+        });
+              }}>
+              申し込む
+              </button>
+          </div>
+        </div>
+      }
+      {startedFlag &&
+        <div>
+        <div>{gameID}</div>
+        <div>{myname}</div>
+        <div>{enemyname}</div>
+        <div style={{ display: "flex" }} className="row">
+        <div className="col-1"></div>
+        {hands.map((data, key) => {
+          return (
+            <div className="col-2 text-center"
+            style={{ background: bgcChange(key, select) }}
+            onClick={() => {
+              let newSetSelect: any[] = select.concat();
+              if (!newSetSelect.includes(key)) {
+                newSetSelect.push(key);
+              } else {
+                newSetSelect.forEach((item, index) => {
+                  if (item === key) {
+                    newSetSelect.splice(index, 1);
+                  }
+                });
+              }
+              setSelect(newSetSelect);
+            }}
+            >
+            {data.name}
+            <h1>
+            <Img src={data.element} />
+            </h1>
+            </div>
+          )
+        })}
+        <div className="col-1">得点</div>
         </div>
         {!canDraw &&
           <div style={{ display: "flex" }} className="row">
-            <div className="col-1">
-              <div>{titles[0].element1}</div>
-              <div>{titles[0].element2}</div>
-            </div>
-            {hands.map((data, key) => {
-              return (
-                <div className="col-2 text-center" style={{ background: bgcChange(key, select) }}>
-                  <div>{data.element1}</div>
-                  <div>{data.element2}</div>
-                </div>
-              )
-            })}
-            <div className="col-1">
-              {scores.map((data:{[key:string] :any; }) => {
-                if(data.length !== 1){
-                  return <div>{data.pairName}{data.pairsCount}点</div>
-                }else{
-                  return <div>ペアなし</div>
-                }
-              })}
-            </div>
-            <h1 style={{ color: "red"}}>{total}</h1>
+          <div className="col-1">
+          <div>{titles[0].element1}</div>
+          <div>{titles[0].element2}</div>
+          </div>
+          {hands.map((data, key) => {
+            return (
+              <div className="col-2 text-center" style={{ background: bgcChange(key, select) }}>
+              <div>{data.element1}</div>
+              <div>{data.element2}</div>
+              </div>
+            )
+          })}
+          <div className="col-1">
+          {scores.map((data:{[key:string] :any; }) => {
+            if(data.length !== 1){
+              return <div>{data.pairName}{data.pairsCount}点</div>
+            }else{
+              return <div>ペアなし</div>
+            }
+          })}
+          </div>
+          <h1 style={{ color: "red"}}>{total}</h1>
           </div>
         }
-      </div>
-      {canDraw &&
-        <button onClick={() => {
+        </div>
+      }
+      {startedFlag && canDraw &&
+        <button className="btn btn-primary" onClick={() => {
           // output の結果を drawScore に渡す
           var outputHnand = drawHand(decks, hands, select);
           var outputScores = drawScore(outputHnand, scores.length);
