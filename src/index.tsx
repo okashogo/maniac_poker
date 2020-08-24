@@ -8,7 +8,7 @@ import firebase from "firebase";
 
 import shuffle from './importFile/shuffle';
 import drawScore from './importFile/drawScore';
-import { elements } from './importFile/testdb';
+import { titles, elements } from './importFile/testdb';
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
@@ -90,8 +90,8 @@ function App() {
     cardsFirst[i] = {
       element: elements[i].img,
       name: elements[i].name,
-      series: elements[i].series,
-      color: elements[i].color,
+      element1: elements[i].element1,
+      element2: elements[i].element2,
     };
   }
 
@@ -142,15 +142,14 @@ function App() {
         {!canDraw &&
           <div style={{ display: "flex" }} className="row">
             <div className="col-1">
-              // ここを配列に変えるだけ
-              <div>シリーズ</div>
-              <div>イメージカラー</div>
+              <div>{titles[0].element1}</div>
+              <div>{titles[0].element2}</div>
             </div>
             {hands.map((data, key) => {
               return (
                 <div className="col-2 text-center" style={{ background: bgcChange(key, select) }}>
-                  <div>{data.series}</div>
-                  <div>{data.color}</div>
+                  <div>{data.element1}</div>
+                  <div>{data.element2}</div>
                 </div>
               )
             })}

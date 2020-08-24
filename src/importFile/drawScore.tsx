@@ -1,35 +1,35 @@
 export default function drawScore(hands: any[], scoresLength: number) {
   var handsTmp = hands.concat();
-  var seriesList: any[] = [];
-  var colorList: any[] = [];
+  var element1List: any[] = [];
+  var element2List: any[] = [];
 
-  // seriesListの作成
+  // element1Listの作成
   for (let i = 0; i < handsTmp.length; i++) {
     //単色
     var isPair: boolean = false;
-    for (let k = 0; k < seriesList.length; k++) {
-      if (seriesList[k][0] === handsTmp[i].series) {
-        seriesList[k][1] += 1;
+    for (let k = 0; k < element1List.length; k++) {
+      if (element1List[k][0] === handsTmp[i].element1) {
+        element1List[k][1] += 1;
         isPair = true;
         break;
       }
     }
     // pairがなかったときのみ出力
     if (!isPair) {
-      seriesList.push([handsTmp[i].series, 1]);
+      element1List.push([handsTmp[i].element1, 1]);
     }
   }
 
-  // colorListの作成
+  // element2Listの作成
   for (let i = 0; i < handsTmp.length; i++) {
-    if (Array.isArray(handsTmp[i].color)) {
+    if (Array.isArray(handsTmp[i].element2)) {
       //多色
-      for (let j = 0; j < handsTmp[i].color.length; j++) {
+      for (let j = 0; j < handsTmp[i].element2.length; j++) {
         //配列内にcolorがすでに登録されていれば、カウントを +1 する
         var isPair: boolean = false;
-        for (let k = 0; k < colorList.length; k++) {
-          if (colorList[k][0] === handsTmp[i].color[j]) {
-            colorList[k][1] += 1;
+        for (let k = 0; k < element2List.length; k++) {
+          if (element2List[k][0] === handsTmp[i].element2[j]) {
+            element2List[k][1] += 1;
             isPair = true;
             break;
           }
@@ -37,37 +37,33 @@ export default function drawScore(hands: any[], scoresLength: number) {
 
         // pairがなかったときのみ出力
         if (!isPair) {
-          colorList.push([handsTmp[i].color[j], 1]);
+          element2List.push([handsTmp[i].element2[j], 1]);
         }
       }
     }
-    else if (handsTmp[i].color === "") {
+    else if (handsTmp[i].element2 === "") {
       continue;
     }
     else {
       //単色
       var isPair: boolean = false;
-      for (let k = 0; k < colorList.length; k++) {
-        if (colorList[k][0] === handsTmp[i].color) {
-          colorList[k][1] += 1;
+      for (let k = 0; k < element2List.length; k++) {
+        if (element2List[k][0] === handsTmp[i].element2) {
+          element2List[k][1] += 1;
           isPair = true;
           break;
         }
       }
       // pairがなかったときのみ出力
       if (!isPair) {
-        colorList.push([handsTmp[i].color, 1]);
+        element2List.push([handsTmp[i].element2, 1]);
       }
     }
   }
 
-  // var scoresTmp = Array(scoresLength).fill(null);
-  // for (let i = 0; i < scoresTmp.length; i++) {
-  //   scoresTmp[i] = addCalculate(seriesList, scoresLength);
-  // }
   var scoresTmp = Array(scoresLength).fill(null);
-  scoresTmp[0] = addCalculate(seriesList, scoresLength);
-  scoresTmp[1] = addCalculate(colorList, scoresLength);
+  scoresTmp[0] = addCalculate(element1List, scoresLength);
+  scoresTmp[1] = addCalculate(element2List, scoresLength);
 
 
   return scoresTmp;
@@ -78,23 +74,19 @@ function addCalculate(list:any[], listLength:number){
   var pairName: string = "";
   var pairsCount: number = 0;
   if(getHashProperties(list).includes(5)){
-    // console.log("ファイブカード x " + pairCount(getHashProperties(seriesList), 5));
     pairName = "ファイブカード x ";
     pairsCount = pairCount(getHashProperties(list), 5);
   }
   else if(getHashProperties(list).includes(4)){
-    // console.log("フォアカード x " + pairCount(getHashProperties(seriesList), 4));
     pairName = "フォアカード x ";
     pairsCount = pairCount(getHashProperties(list), 4);
 
   }
   else if(getHashProperties(list).includes(3)){
-    // console.log("スリーカード x " + pairCount(getHashProperties(seriesList), 3));
     pairName = "スリーカード x ";
     pairsCount = pairCount(getHashProperties(list), 3);
   }
   else if(getHashProperties(list).includes(2)){
-    // console.log("ペア x " + pairCount(getHashProperties(seriesList), 2));
     pairName = "ペア x ";
     pairsCount = pairCount(getHashProperties(list), 2);
   }
