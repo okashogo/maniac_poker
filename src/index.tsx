@@ -113,6 +113,7 @@ function App() {
       snapshot.docChanges().forEach(change => {
         if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().applyName !== "nobody") {
           console.log('applyed!!!');
+          setEnemyname(change.doc.data().applyName);
         }
       })
     });
@@ -204,9 +205,9 @@ function App() {
       }
       {startedFlag &&
         <div>
-        <div>{gameID}</div>
-        <div>{myname}</div>
-        <div>{enemyname}</div>
+        <div>gameID: {gameID}</div>
+        <div>自分の名前：{myname}</div>
+        <div>相手の名前：{enemyname}</div>
         <div style={{ display: "flex" }} className="row">
         <div className="col-1"></div>
         {hands.map((data, key) => {
