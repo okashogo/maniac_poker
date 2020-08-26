@@ -12,7 +12,6 @@ import drawScore from './importFile/drawScore';
 import { titles, elements } from './importFile/testdb';
 import drawHand from './importFile/drawHand';
 import calTotal from './importFile/calTotal';
-import getHashProperties from './importFile/getHashProperties';
 // import drawDeck from './importFile/drawDeck';
 
 // Initialize Firebase
@@ -72,6 +71,38 @@ function App() {
                 console.log("snapshot = " + snapshot);
                 setEnemyname(change.doc.data().applyName);
                 setStage(2);
+              })
+              .catch(err => {
+                console.log("err = " + err);
+              });
+          }
+
+          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().applyName !== "nobody" && change.doc.data().stage === 3) {
+
+            console.log('applyed!!!');
+            collection_game.doc(change.doc.id)
+              .set({
+                gameID: change.doc.data().gameID,
+                roomName: change.doc.data().roomName,
+                roomID: change.doc.data().roomID,
+                applyName: change.doc.data().applyName,
+                decks: change.doc.data().decks,
+                stage: 3,
+                scores: change.doc.data().scores,
+                winner: change.doc.data().winner,
+              })
+              .then(snapshot => {
+                console.log("snapshot = " + snapshot);
+
+                if(change.doc.data().winner === myname){
+                  alert("あなたの勝ちです。")
+                }
+                else if(change.doc.data().winner === "draw"){
+                  alert("引き分けです。")
+                }
+                else{
+                  alert("あなたの負けです。")
+                }
               })
               .catch(err => {
                 console.log("err = " + err);
@@ -280,6 +311,46 @@ function App() {
 
                 var concatScores = doc.data().scores.concat({name:myname, score:myScoreTmp});
 
+                var winner: string = "nobody";
+                var upStage: number = 0;
+
+                if(concatScores.length == 2){
+                  console.log("finish");
+
+                  // 対戦相手が複数の場合
+                  // let getScores:number[] = [];
+                  // for (let i = 0; i < concatScores.length; i++) {
+                  //     getScores.push(concatScores[i].score);
+                  // }
+                  // console.log(getScores);
+                  // console.log(getScores.indexOf(Math.max.apply(null,getScores)));
+                  if(concatScores[0].score > concatScores[1].score){
+                    // console.log(concatScores[0].name + "さんの勝利");
+                    winner = concatScores[0].name;
+                  }
+                  else if(concatScores[0].score === concatScores[1].score){
+                    // console.log("同点");
+                    winner = "draw";
+                  }
+                  else{
+                    // console.log(concatScores[1].name + "さんの勝利");
+                    winner = concatScores[1].name;
+                  }
+                  setStage(3);
+
+                  if(winner === myname){
+                    alert("あなたの勝ちです。")
+                  }
+                  else if(winner === "draw"){
+                    alert("引き分けです。")
+                  }
+                  else{
+                    alert("あなたの負けです。")
+                  }
+
+                  upStage = 1;
+                }
+
                 // 次回、ここに得点カラムを追加させる
                 // 得点カラムは配列で 長さは人数分 初期値は -1 すべてが 0以上になると、stageを3に上げて終了する。
                 collection_game.doc(doc.id)
@@ -289,33 +360,12 @@ function App() {
                     roomID: doc.data().roomID,
                     applyName: doc.data().applyName,
                     decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
-                    stage: 2,
+                    stage: 2 + upStage,
                     scores: concatScores,
+                    winner: winner,
                   })
                   .then(snapshot => {
                     console.log("snapshot = " + snapshot);
-                    if(concatScores.length == 2){
-                      console.log("finish");
-
-                      // 対戦相手が複数の場合
-                      // let getScores:number[] = [];
-                      // for (let i = 0; i < concatScores.length; i++) {
-                      //     getScores.push(concatScores[i].score);
-                      // }
-                      // console.log(getScores);
-                      // console.log(getScores.indexOf(Math.max.apply(null,getScores)));
-                      if(concatScores[0].score > concatScores[1].score){
-                        console.log(concatScores[0].name + "さんの勝利");
-                      }
-                      else if(concatScores[0].score === concatScores[1].score){
-                        console.log("同点");
-                      }
-                      else{
-                        console.log(concatScores[1].name + "さんの勝利");
-                      }
-                      setStage(3);
-                    }
-
                   })
                   .catch(err => {
                     console.log("err = " + err);
