@@ -36,19 +36,7 @@ function bgcChange(key: number, select: any[]) {
 }
 
 function App() {
-  // 初期設定
-  var cardsFirst: any[] = [];
-  for (let i = 0; i < elements.length; i++) {
-    cardsFirst[i] = {
-      element: elements[i].img,
-      name: elements[i].name,
-      element1: elements[i].element1,
-      element2: elements[i].element2,
-    };
-  }
 
-  cardsFirst = shuffle(cardsFirst);
-  // 初期設定終了
 
   const [gameID, setGameID] = useState("");
   const [myname, setMyname] = useState("");
@@ -57,10 +45,8 @@ function App() {
   const [applyID, setApplyID] = useState(0);
   const [stage, setStage] = useState(0);
 
-  var handFirst = cardsFirst.slice(0, 5);
-  var deckFirst = cardsFirst.slice(5);
-  const [hands, sethand] = useState(handFirst);
-  const [decks, setdeck] = useState(deckFirst);
+  const [hands, sethand] = useState([{name: "", img: "", element1: "", element2: ""}]);
+  const [decks, setdeck] = useState([null]);
   const [select, setSelect] = useState([null]);
   const [scores, setScore]: any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
   const [total, setTotal] = useState(0);
@@ -105,11 +91,29 @@ function App() {
                 setGameID(gameIDFirst);
 
                 // DBにaddする
+                // 初期設定
+                var cardsFirst: any[] = [];
+                for (let i = 0; i < elements.length; i++) {
+                  cardsFirst[i] = {
+                    img: elements[i].img,
+                    name: elements[i].name,
+                    element1: elements[i].element1,
+                    element2: elements[i].element2,
+                  };
+                }
+                cardsFirst = shuffle(cardsFirst);
+                // 初期設定終了
+                var handFirst = cardsFirst.slice(0, 5);
+                var deckFirst = cardsFirst.slice(5);
+                sethand(handFirst);
+                setdeck(deckFirst);
+
                 collection_game.add({
                   gameID: gameIDFirst,
                   roomName: myname,
                   roomID: roomID,
                   applyName: 'nobody',
+                  decks: deckFirst,
                 })
                   .then(doc => {
                     console.log(doc);
@@ -141,9 +145,13 @@ function App() {
                           roomName: doc.data().roomName,
                           roomID: doc.data().roomID,
                           applyName: myname,
+                          decks: doc.data().decks.slice(5),
                         })
                         .then(snapshot => {
                           console.log(snapshot);
+                          sethand(doc.data().decks.slice(0, 5));
+                          setdeck(doc.data().decks.slice(5));
+
                           setGameID(doc.data().gameID);
                           setEnemyname(doc.data().roomName);
                           setStage(2);
@@ -196,7 +204,7 @@ function App() {
                 >
                   {data.name}
                   <h1>
-                    <Img src={data.element} />
+                    <Img src={data.img} />
                   </h1>
                 </div>
               )
