@@ -67,12 +67,12 @@ function App() {
                 stage: 2,
               })
               .then(snapshot => {
-                console.log(snapshot);
+                console.log("snapshot = " + snapshot);
                 setEnemyname(change.doc.data().applyName);
                 setStage(2);
               })
               .catch(err => {
-                console.log(err);
+                console.log("err = " + err);
               });
           }
         })
@@ -131,11 +131,11 @@ function App() {
                   stage: 1,
                 })
                   .then(doc => {
-                    console.log(doc);
+                    console.log("doc = " + doc);
                     setStage(1);
                   })
                   .catch(error => {
-                    console.log(error);
+                    console.log("error = " + error);
                   })
               }}>
               部屋を作る
@@ -163,7 +163,7 @@ function App() {
                           stage: 1,
                         })
                         .then(snapshot => {
-                          console.log(snapshot);
+                          console.log("snapshot = " + snapshot);
                           sethand(doc.data().decks.slice(0, 5));
 
                           setGameID(doc.data().gameID);
@@ -171,7 +171,7 @@ function App() {
                           setStage(2);
                         })
                         .catch(err => {
-                          console.log(err);
+                          console.log("err = " + err);
                         });
 
                     });
@@ -261,7 +261,7 @@ function App() {
                 return;
               }
               snapshot.forEach(doc => {
-                console.log(doc);
+                console.log("doc =" + doc);
                 var decksTmp = doc.data().decks;
                 collection_game.doc(doc.id)
                   .set({
@@ -273,7 +273,7 @@ function App() {
                     stage: 2,
                   })
                   .then(snapshot => {
-                    console.log(snapshot);
+                    console.log("snapshot = " + snapshot);
 
                     // output の結果を drawScore に渡す
                     var outputHnand = drawHand(decksTmp, hands, select);
@@ -290,7 +290,7 @@ function App() {
                     setStage(3);
                   })
                   .catch(err => {
-                    console.log(err);
+                    console.log("err = " + err);
                   });
 
               });
