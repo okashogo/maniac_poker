@@ -45,17 +45,17 @@ function App() {
   const [applyID, setApplyID] = useState(0);
   const [stage, setStage] = useState(0);
 
-  const [hands, sethand] = useState([{name: "", img: "", element1: "", element2: ""}]);
-  const [decks, setdeck] = useState([null]);
+  const [hands, sethand] = useState([{ name: "", img: "", element1: "", element2: "" }]);
   const [select, setSelect] = useState([null]);
   const [scores, setScore]: any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    if(stage === 1){
+    if (stage === 1) {
       collection_game.onSnapshot(snapshot => {
         snapshot.docChanges().forEach(change => {
           if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().applyName !== "nobody") {
+
             console.log('applyed!!!');
             setEnemyname(change.doc.data().applyName);
             setStage(2);
@@ -106,7 +106,6 @@ function App() {
                 var handFirst = cardsFirst.slice(0, 5);
                 var deckFirst = cardsFirst.slice(5);
                 sethand(handFirst);
-                setdeck(deckFirst);
 
                 collection_game.add({
                   gameID: gameIDFirst,
@@ -138,7 +137,6 @@ function App() {
                       return;
                     }
                     snapshot.forEach(doc => {
-                      console.log(doc);
                       collection_game.doc(doc.id)
                         .set({
                           gameID: doc.data().gameID,
@@ -150,7 +148,6 @@ function App() {
                         .then(snapshot => {
                           console.log(snapshot);
                           sethand(doc.data().decks.slice(0, 5));
-                          setdeck(doc.data().decks.slice(5));
 
                           setGameID(doc.data().gameID);
                           setEnemyname(doc.data().roomName);
@@ -241,17 +238,49 @@ function App() {
       }
       {stage === 2 &&
         <button className="btn btn-primary" onClick={() => {
-          // output の結果を drawScore に渡す
-          var outputHnand = drawHand(decks, hands, select);
-          var outputScores = drawScore(outputHnand, scores.length);
-          var outputotal = calTotal(outputScores);
-          sethand(outputHnand);
-          setdeck(drawDeck(decks, select));
-          setScore(outputScores);
-          setTotal(calTotal(outputScores));
-          console.log(outputotal);
-          setSelect([null]);
-          setStage(3);
+          collection_game.where('gameID', '==', gameID).get()
+            .then(snapshot => {
+              if (snapshot.empty) {
+                return;
+              }
+              snapshot.forEach(doc => {
+                console.log(doc);
+                var decksTmp = doc.data().decks;
+                collection_game.doc(doc.id)
+                  .set({
+                    gameID: doc.data().gameID,
+                    roomName: doc.data().roomName,
+                    roomID: doc.data().roomID,
+                    applyName: doc.data().applyName,
+                    decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
+                  })
+                  .then(snapshot => {
+                    console.log(snapshot);
+
+                    // output の結果を drawScore に渡す
+                    var outputHnand = drawHand(decksTmp, hands, select);
+                    sethand(outputHnand);
+
+                    var outputScores = drawScore(outputHnand, scores.length);
+                    setScore(outputScores);
+                    setTotal(calTotal(outputScores));
+
+                    var outputotal = calTotal(outputScores);
+
+                    // setdeck(drawDeck(decksTmp, select));
+                    setSelect([null]);
+                    setStage(3);
+                  })
+                  .catch(err => {
+                    console.log(err);
+                  });
+
+              });
+            })
+            .catch(err => {
+              console.log('Error getting documents', err);
+            });
+
         }}>
           ドロー
         </button>
