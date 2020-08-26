@@ -1,3 +1,5 @@
+import getHashProperties from './getHashProperties';
+
 export default function drawScore(hands: any[], scoresLength: number) {
   var handsTmp = hands.concat();
   var element1List: any[] = [];
@@ -97,15 +99,6 @@ function addCalculate(list:any[], listLength:number){
   return {pairName: pairName, pairsCount: pairsCount};
 }
 
-
-
-function getHashProperties(a:any[]){
-  let r:number[] = [];
-  for (let i = 0; i < a.length; i++) {
-      r.push(a[i][1]);
-  }
-  return r;
-}
 
 function pairCount(list: number[], pairNum: number){
   var pairCount:number = 0;

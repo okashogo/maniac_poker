@@ -12,7 +12,8 @@ import drawScore from './importFile/drawScore';
 import { titles, elements } from './importFile/testdb';
 import drawHand from './importFile/drawHand';
 import calTotal from './importFile/calTotal';
-import drawDeck from './importFile/drawDeck';
+import getHashProperties from './importFile/getHashProperties';
+// import drawDeck from './importFile/drawDeck';
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -65,6 +66,7 @@ function App() {
                 applyName: change.doc.data().applyName,
                 decks: change.doc.data().decks,
                 stage: 2,
+                scores: change.doc.data().scores,
               })
               .then(snapshot => {
                 console.log("snapshot = " + snapshot);
@@ -129,6 +131,7 @@ function App() {
                   applyName: 'nobody',
                   decks: deckFirst,
                   stage: 1,
+                  scores: [],
                 })
                   .then(doc => {
                     console.log("doc = " + doc);
@@ -161,6 +164,7 @@ function App() {
                           applyName: myname,
                           decks: doc.data().decks.slice(5),
                           stage: 1,
+                          scores: doc.data().scores,
                         })
                         .then(snapshot => {
                           console.log("snapshot = " + snapshot);
@@ -263,6 +267,21 @@ function App() {
               snapshot.forEach(doc => {
                 console.log("doc =" + doc);
                 var decksTmp = doc.data().decks;
+                // output の結果を drawScore に渡す
+                var outputHnand = drawHand(decksTmp, hands, select);
+                sethand(outputHnand);
+
+                var outputScores = drawScore(outputHnand, scores.length);
+                setScore(outputScores);
+                var myScoreTmp = calTotal(outputScores);
+                setTotal(myScoreTmp);
+                setSelect([null]);
+                setStage(3);
+
+                var concatScores = doc.data().scores.concat({name:myname, score:myScoreTmp});
+
+                // 次回、ここに得点カラムを追加させる
+                // 得点カラムは配列で 長さは人数分 初期値は -1 すべてが 0以上になると、stageを3に上げて終了する。
                 collection_game.doc(doc.id)
                   .set({
                     gameID: doc.data().gameID,
@@ -271,27 +290,38 @@ function App() {
                     applyName: doc.data().applyName,
                     decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
                     stage: 2,
+                    scores: concatScores,
                   })
                   .then(snapshot => {
                     console.log("snapshot = " + snapshot);
+                    if(concatScores.length == 2){
+                      console.log("finish");
 
-                    // output の結果を drawScore に渡す
-                    var outputHnand = drawHand(decksTmp, hands, select);
-                    sethand(outputHnand);
+                      // 対戦相手が複数の場合
+                      // let getScores:number[] = [];
+                      // for (let i = 0; i < concatScores.length; i++) {
+                      //     getScores.push(concatScores[i].score);
+                      // }
+                      // console.log(getScores);
+                      // console.log(getScores.indexOf(Math.max.apply(null,getScores)));
+                      if(concatScores[0].score > concatScores[1].score){
+                        console.log(concatScores[0].name + "さんの勝利");
+                      }
+                      else if(concatScores[0].score === concatScores[1].score){
+                        console.log("同点");
+                      }
+                      else{
+                        console.log(concatScores[1].name + "さんの勝利");
+                      }
+                      setStage(3);
+                    }
 
-                    var outputScores = drawScore(outputHnand, scores.length);
-                    setScore(outputScores);
-                    setTotal(calTotal(outputScores));
-
-                    var outputotal = calTotal(outputScores);
-
-                    // setdeck(drawDeck(decksTmp, select));
-                    setSelect([null]);
-                    setStage(3);
                   })
                   .catch(err => {
                     console.log("err = " + err);
                   });
+
+
 
               });
             })
