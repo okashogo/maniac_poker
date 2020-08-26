@@ -54,11 +54,26 @@ function App() {
     if (stage === 1) {
       collection_game.onSnapshot(snapshot => {
         snapshot.docChanges().forEach(change => {
-          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().applyName !== "nobody") {
+          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().applyName !== "nobody" && change.doc.data().stage === 1) {
 
             console.log('applyed!!!');
-            setEnemyname(change.doc.data().applyName);
-            setStage(2);
+            collection_game.doc(change.doc.id)
+              .set({
+                gameID: change.doc.data().gameID,
+                roomName: change.doc.data().roomName,
+                roomID: change.doc.data().roomID,
+                applyName: change.doc.data().applyName,
+                decks: change.doc.data().decks,
+                stage: 2,
+              })
+              .then(snapshot => {
+                console.log(snapshot);
+                setEnemyname(change.doc.data().applyName);
+                setStage(2);
+              })
+              .catch(err => {
+                console.log(err);
+              });
           }
         })
       });
@@ -113,6 +128,7 @@ function App() {
                   roomID: roomID,
                   applyName: 'nobody',
                   decks: deckFirst,
+                  stage: 1,
                 })
                   .then(doc => {
                     console.log(doc);
@@ -144,6 +160,7 @@ function App() {
                           roomID: doc.data().roomID,
                           applyName: myname,
                           decks: doc.data().decks.slice(5),
+                          stage: 1,
                         })
                         .then(snapshot => {
                           console.log(snapshot);
@@ -253,6 +270,7 @@ function App() {
                     roomID: doc.data().roomID,
                     applyName: doc.data().applyName,
                     decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
+                    stage: 2,
                   })
                   .then(snapshot => {
                     console.log(snapshot);
