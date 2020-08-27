@@ -314,13 +314,12 @@ function App() {
                           userNameList: doc.data().userNameList,
                           userIDList: doc.data().userIDList,
                           readListFlag: [],
-                          decks: doc.data().decks.slice(5),
+                          decks: doc.data().decks,
                           stage: 2,
                           scores: doc.data().scores,
                         })
                         .then(snapshot => {
                           console.log("snapshot = " + snapshot);
-                          sethand(doc.data().decks.slice(0, 5));
                           setStage(2);
                         })
                         .catch(err => {
