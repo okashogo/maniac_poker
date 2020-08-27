@@ -70,15 +70,17 @@ function App() {
     if (stage === 1) {
       collection_game.onSnapshot(snapshot => {
         snapshot.docChanges().forEach(change => {
-          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 1) {
+          if (change.type === 'modified' && gameID === change.doc.data().gameID && !change.doc.data().readListFlag.indexOf(myID) && change.doc.data().stage === 1) {
 
             console.log('applyed!!!');
+            console.log(myID);
             collection_game.doc(change.doc.id)
               .set({
                 gameID: change.doc.data().gameID,
                 roomID: change.doc.data().roomID,
                 userNameList: change.doc.data().userNameList,
                 userIDList: change.doc.data().userIDList,
+                readListFlag: change.doc.data().readListFlag.concat(myID),
                 decks: change.doc.data().decks,
                 stage: 1,
                 scores: change.doc.data().scores,
@@ -95,8 +97,6 @@ function App() {
           }
 
           if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 3) {
-
-            console.log('applyed!!!');
             collection_game.doc(change.doc.id)
               .set({
                 gameID: change.doc.data().gameID,
@@ -175,6 +175,7 @@ function App() {
                   userNameList: [myname,],
                   userIDList: [randomMyID,],
                   decks: deckFirst,
+                  readListFlag: [],
                   stage: 1,
                   scores: [],
                 })
@@ -223,6 +224,7 @@ function App() {
                           userNameList: userNameListTmp.concat(myname),
                           userIDList: userIDListTmp.concat(randomMyID),
                           decks: doc.data().decks.slice(5),
+                          readListFlag: [],
                           stage: 1,
                           scores: doc.data().scores,
                         })
@@ -253,9 +255,44 @@ function App() {
         <div>
           <div>ようこそ、{myname}さん</div>
           <div>対戦相手を探しています。。。</div>
+
           {parent &&
-            <button className="btn btn-primary">ゲームスタート</button>
+            <button className="btn btn-primary"
+              onClick={() => {
+                collection_game.where('stage', '==', 1).where('gameID', '==', gameID).get()
+                  .then(snapshot => {
+                    if (snapshot.empty) {
+                      return;
+                    }
+                    snapshot.forEach(doc => {
+                      collection_game.doc(doc.id)
+                        .set({
+                          gameID: doc.data().gameID,
+                          roomID: doc.data().roomID,
+                          userNameList: doc.data().userNameList,
+                          userIDList: doc.data().userIDList,
+                          readListFlag: [],
+                          decks: doc.data().decks.slice(5),
+                          stage: 2,
+                          scores: doc.data().scores,
+                        })
+                        .then(snapshot => {
+                          console.log("snapshot = " + snapshot);
+                          sethand(doc.data().decks.slice(0, 5));
+                          setStage(2);
+                        })
+                        .catch(err => {
+                          console.log("err = " + err);
+                        });
+
+                    });
+                  })
+                  .catch(err => {
+                    console.log('Error getting documents', err);
+                  });
+              }}>ゲームスタート</button>
           }
+
           <div>ユーザー一覧</div>
           <div>{userNameList}</div>
         </div>
