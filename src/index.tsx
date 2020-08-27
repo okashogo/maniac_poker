@@ -71,37 +71,38 @@ function App() {
   useEffect(() => {
     if (stage === 1) {
       collection_game.onSnapshot(snapshot => {
-        snapshot.docChanges().forEach(change => {
+        snapshot.docChanges().forEach(async change => {
+
+          // DBが変更されていたら、このif文は通らない
           if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.indexOf(myID) === -1 && change.doc.data().stage === 1) {
+            var readListFlagTnp =  change.doc.data().readListFlag.concat(myID);
 
             console.log('applyed!!!');
+            console.log(change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.indexOf(myID) === -1 && change.doc.data().stage === 1);
             console.log(myID);
-            collection_game.doc(change.doc.id)
-              .set({
-                gameID: change.doc.data().gameID,
-                roomID: change.doc.data().roomID,
-                userNameList: change.doc.data().userNameList,
-                userIDList: change.doc.data().userIDList,
-                readListFlag: change.doc.data().readListFlag.concat(myID),
-                decks: change.doc.data().decks,
-                stage: 1,
-                scores: change.doc.data().scores,
-              })
-              .then(snapshot => {
-                console.log("snapshot = " + snapshot);
-                setUserNameList(change.doc.data().userNameList)
-                setUserIDList(change.doc.data().userIDList);
-                // setStage(2);
-              })
-              .catch(err => {
-                console.log("err = " + err);
-              });
+            console.log(readListFlagTnp);
+            console.log(readListFlagTnp.indexOf(myID) === -1);
+            // ここでDBを変更
+            await collection_game.doc(change.doc.id)
+            .set({
+              gameID: change.doc.data().gameID,
+              roomID: change.doc.data().roomID,
+              userNameList: change.doc.data().userNameList,
+              userIDList: change.doc.data().userIDList,
+              readListFlag: readListFlagTnp,
+              decks: change.doc.data().decks,
+              stage: 1,
+              scores: change.doc.data().scores,
+            });
+
+            setUserNameList(change.doc.data().userNameList)
+            setUserIDList(change.doc.data().userIDList);
           }
 
           if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.indexOf(myID) === -1 && change.doc.data().stage === 2) {
 
             console.log('start!!!');
-            collection_game.doc(change.doc.id)
+            await collection_game.doc(change.doc.id)
               .set({
                 gameID: change.doc.data().gameID,
                 roomID: change.doc.data().roomID,
@@ -112,14 +113,14 @@ function App() {
                 stage: 2,
                 scores: change.doc.data().scores,
               })
-              .then(snapshot => {
-                console.log("snapshot = " + snapshot);
-                sethand(change.doc.data().decks.slice(0, 5));
-                setStage(2);
-              })
-              .catch(err => {
-                console.log("err = " + err);
-              });
+              // .then(snapshot => {
+              console.log("snapshot = " + snapshot);
+              sethand(change.doc.data().decks.slice(0, 5));
+              setStage(2);
+              // })
+              // .catch(err => {
+              //   console.log("err = " + err);
+              // });
           }
 
           if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 3) {
@@ -237,7 +238,7 @@ function App() {
                       return;
                     }
 
-                    snapshot.forEach(doc => {
+                    snapshot.forEach(async doc => {
                       var userNameListTmp = doc.data().userNameList;
                       var userIDListTmp = doc.data().userIDList;
                       console.log(userNameListTmp);
@@ -246,7 +247,7 @@ function App() {
                       console.log(userIDListTmp.concat(randomMyID));
                       setMyNumber(doc.data().userNameList.length);
 
-                      collection_game.doc(doc.id)
+                      await collection_game.doc(doc.id)
                         .set({
                           gameID: doc.data().gameID,
                           roomID: doc.data().roomID,
@@ -335,7 +336,9 @@ function App() {
           }
 
           <div>ユーザー一覧</div>
-          <div>{userNameList}</div>
+          {userNameList.map((data) => {
+            return <div>{data}さん</div>
+          })}
         </div>
       }
 
@@ -427,28 +430,30 @@ function App() {
                 var winner: string = "nobody";
                 var upStage: number = 0;
 
-                if(concatScores.length == 2){
+                if(concatScores.length == doc.data().userNameList.length){
                   console.log("finish");
-
                   // 対戦相手が複数の場合
-                  // let getScores:number[] = [];
-                  // for (let i = 0; i < concatScores.length; i++) {
-                  //     getScores.push(concatScores[i].score);
+                  let getScores:number[] = [];
+                  for (let i = 0; i < concatScores.length; i++) {
+                      getScores.push(concatScores[i].score);
+                  }
+                  console.log(getScores);
+                  console.log(Math.max.apply(null,getScores));
+                  console.log(getScores.indexOf(Math.max.apply(null,getScores)));
+                  var winnerNumber = getScores.indexOf(Math.max.apply(null,getScores));
+                  // if(concatScores[0].score > concatScores[1].score){
+                  // console.log(concatScores[0].name + "さんの勝利");
+                  winner = concatScores[winnerNumber].name;
+                  console.log(winner + "さんの勝利");
                   // }
-                  // console.log(getScores);
-                  // console.log(getScores.indexOf(Math.max.apply(null,getScores)));
-                  if(concatScores[0].score > concatScores[1].score){
-                    // console.log(concatScores[0].name + "さんの勝利");
-                    winner = concatScores[0].name;
-                  }
-                  else if(concatScores[0].score === concatScores[1].score){
-                    // console.log("同点");
-                    winner = "draw";
-                  }
-                  else{
-                    // console.log(concatScores[1].name + "さんの勝利");
-                    winner = concatScores[1].name;
-                  }
+                  // else if(concatScores[0].score === concatScores[1].score){
+                  //   // console.log("同点");
+                  //   winner = "draw";
+                  // }
+                  // else{
+                  //   // console.log(concatScores[1].name + "さんの勝利");
+                  //   winner = concatScores[1].name;
+                  // }
                   setStage(3);
 
                   upStage = 1;
