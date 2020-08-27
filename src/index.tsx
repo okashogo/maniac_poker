@@ -52,6 +52,7 @@ function App() {
   const [gameID, setGameID] = useState("");
   const [myname, setMyname] = useState("");
   const [myID, setMyID] = useState("");
+  const [myNumber, setMyNumber] = useState(-1);
   const [userNameList, setUserNameList] = useState([]);
   const [userIDList, setUserIDList] = useState([]);
   const [roomID, setRoomID] = useState(0);
@@ -70,7 +71,7 @@ function App() {
     if (stage === 1) {
       collection_game.onSnapshot(snapshot => {
         snapshot.docChanges().forEach(change => {
-          if (change.type === 'modified' && gameID === change.doc.data().gameID && !change.doc.data().readListFlag.indexOf(myID) && change.doc.data().stage === 1) {
+          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.indexOf(myID) === -1 && change.doc.data().stage === 1) {
 
             console.log('applyed!!!');
             console.log(myID);
@@ -96,13 +97,38 @@ function App() {
               });
           }
 
+          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.indexOf(myID) === -1 && change.doc.data().stage === 2) {
+
+            console.log('start!!!');
+            collection_game.doc(change.doc.id)
+              .set({
+                gameID: change.doc.data().gameID,
+                roomID: change.doc.data().roomID,
+                userNameList: change.doc.data().userNameList,
+                userIDList: change.doc.data().userIDList,
+                readListFlag: change.doc.data().readListFlag.concat(myID),
+                decks: change.doc.data().decks.slice(5),
+                stage: 2,
+                scores: change.doc.data().scores,
+              })
+              .then(snapshot => {
+                console.log("snapshot = " + snapshot);
+                sethand(change.doc.data().decks.slice(0, 5));
+                setStage(2);
+              })
+              .catch(err => {
+                console.log("err = " + err);
+              });
+          }
+
           if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 3) {
             collection_game.doc(change.doc.id)
               .set({
                 gameID: change.doc.data().gameID,
-                roomName: change.doc.data().roomName,
                 roomID: change.doc.data().roomID,
-                applyName: change.doc.data().applyName,
+                userNameList: change.doc.data().userNameList,
+                userIDList: change.doc.data().userIDList,
+                readListFlag: change.doc.data().readListFlag,
                 decks: change.doc.data().decks,
                 stage: 3,
                 scores: change.doc.data().scores,
@@ -183,6 +209,7 @@ function App() {
                     console.log("doc = " + doc);
                     setParent(true);
                     setStage(1);
+                    setMyNumber(0);
                     // setUserNameList(userNameList.push(myname));
                     // setUserIDList(userIDList.push(myID));
                   })
@@ -216,6 +243,7 @@ function App() {
                       console.log(userIDListTmp);
                       console.log(userNameListTmp.concat(myname));
                       console.log(userIDListTmp.concat(randomMyID));
+                      setMyNumber(doc.data().userNameList.length);
 
                       collection_game.doc(doc.id)
                         .set({
@@ -233,6 +261,7 @@ function App() {
                           sethand(doc.data().decks.slice(0, 5));
 
                           setGameID(doc.data().gameID);
+                          console.log(doc.data().gameID);
                           setStage(1);
                         })
                         .catch(err => {
@@ -259,6 +288,7 @@ function App() {
           {parent &&
             <button className="btn btn-primary"
               onClick={() => {
+                console.log("start button!");
                 collection_game.where('stage', '==', 1).where('gameID', '==', gameID).get()
                   .then(snapshot => {
                     if (snapshot.empty) {
@@ -269,6 +299,8 @@ function App() {
                         .set({
                           gameID: doc.data().gameID,
                           roomID: doc.data().roomID,
+                          usercount: doc.data().userNameList.length,
+                          nextUser: 1,
                           userNameList: doc.data().userNameList,
                           userIDList: doc.data().userIDList,
                           readListFlag: [],
@@ -410,16 +442,6 @@ function App() {
                   }
                   setStage(3);
 
-                  if(winner === myname){
-                    alert("あなたの勝ちです。")
-                  }
-                  else if(winner === "draw"){
-                    alert("引き分けです。")
-                  }
-                  else{
-                    alert("あなたの負けです。")
-                  }
-
                   upStage = 1;
                 }
 
@@ -428,9 +450,10 @@ function App() {
                 collection_game.doc(doc.id)
                   .set({
                     gameID: doc.data().gameID,
-                    roomName: doc.data().roomName,
                     roomID: doc.data().roomID,
-                    applyName: doc.data().applyName,
+                    userNameList: doc.data().userNameList,
+                    userIDList: doc.data().userIDList,
+                    readListFlag: doc.data().readListFlag,
                     decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
                     stage: 2 + upStage,
                     scores: concatScores,
