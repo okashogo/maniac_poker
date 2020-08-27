@@ -70,7 +70,7 @@ function App() {
 
   useEffect(() => {
     if (stage === 1) {
-      collection_game.onSnapshot(snapshot => {
+      collection_game.onSnapshot(async snapshot => {
         snapshot.docChanges().forEach(async change => {
 
           // DBが変更されていたら、このif文は通らない
@@ -78,7 +78,7 @@ function App() {
             var readListFlagTnp =  change.doc.data().readListFlag.concat(myID);
 
             console.log('applyed!!!');
-            console.log(change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.indexOf(myID) === -1 && change.doc.data().stage === 1);
+            console.log(change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.length === myNumber && change.doc.data().stage === 1);
             console.log(myID);
             console.log(readListFlagTnp);
             console.log(readListFlagTnp.indexOf(myID) === -1);
@@ -99,9 +99,12 @@ function App() {
             setUserIDList(change.doc.data().userIDList);
           }
 
-          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.indexOf(myID) === -1 && change.doc.data().stage === 2) {
+          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.length === myNumber && change.doc.data().stage === 2) {
 
             console.log('start!!!');
+            console.log(myNumber);
+            console.log(change.doc.data().readListFlag.length);
+            console.log(change.doc.data().readListFlag);
             await collection_game.doc(change.doc.id)
               .set({
                 gameID: change.doc.data().gameID,
