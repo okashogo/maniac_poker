@@ -35,15 +35,31 @@ function bgcChange(key: number, select: any[]) {
   return
 }
 
+function randomChar() {
+  var l = 8;
+  var c = "abcdefghijklmnopqrstuvwxyz0123456789";
+  var cl = c.length;
+  var randomChar = "";
+  for (var i = 0; i < l; i++) {
+    randomChar += c[Math.floor(Math.random() * cl)];
+  }
+  return randomChar;
+}
+
 function App() {
 
 
   const [gameID, setGameID] = useState("");
   const [myname, setMyname] = useState("");
-  const [enemyname, setEnemyname] = useState("");
+  const [myID, setMyID] = useState("");
+  const [userNameList, setUserNameList] = useState([]);
+  const [userIDList, setUserIDList] = useState([]);
   const [roomID, setRoomID] = useState(0);
   const [applyID, setApplyID] = useState(0);
+  // const [enemyname, setEnemyname] = useState("");
   const [stage, setStage] = useState(0);
+  const [parent, setParent] = useState(false);
+
 
   const [hands, sethand] = useState([{ name: "", img: "", element1: "", element2: "" }]);
   const [select, setSelect] = useState([null]);
@@ -54,30 +70,31 @@ function App() {
     if (stage === 1) {
       collection_game.onSnapshot(snapshot => {
         snapshot.docChanges().forEach(change => {
-          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().applyName !== "nobody" && change.doc.data().stage === 1) {
+          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 1) {
 
             console.log('applyed!!!');
             collection_game.doc(change.doc.id)
               .set({
                 gameID: change.doc.data().gameID,
-                roomName: change.doc.data().roomName,
                 roomID: change.doc.data().roomID,
-                applyName: change.doc.data().applyName,
+                userNameList: change.doc.data().userNameList,
+                userIDList: change.doc.data().userIDList,
                 decks: change.doc.data().decks,
-                stage: 2,
+                stage: 1,
                 scores: change.doc.data().scores,
               })
               .then(snapshot => {
                 console.log("snapshot = " + snapshot);
-                setEnemyname(change.doc.data().applyName);
-                setStage(2);
+                setUserNameList(change.doc.data().userNameList)
+                setUserIDList(change.doc.data().userIDList);
+                // setStage(2);
               })
               .catch(err => {
                 console.log("err = " + err);
               });
           }
 
-          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().applyName !== "nobody" && change.doc.data().stage === 3) {
+          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 3) {
 
             console.log('applyed!!!');
             collection_game.doc(change.doc.id)
@@ -122,6 +139,7 @@ function App() {
               setMyname(e.target.value)
             } />
           </div>
+
           <div>部屋を作る：<input placeholder="半角数字を入力"
             onChange={(e) =>
               setRoomID(Number(e.target.value))
@@ -129,16 +147,11 @@ function App() {
             <button className="btn btn-primary"
               onClick={() => {
                 //ランダムなGammeIDを作成
-                var l = 8;
-                var c = "abcdefghijklmnopqrstuvwxyz0123456789";
-                var cl = c.length;
-                var gameIDFirst = "";
-                for (var i = 0; i < l; i++) {
-                  gameIDFirst += c[Math.floor(Math.random() * cl)];
-                }
-                setGameID(gameIDFirst);
+                var randomGameID = randomChar();
+                setGameID(randomGameID);
+                var randomMyID = randomChar();
+                setMyID(randomMyID);
 
-                // DBにaddする
                 // 初期設定
                 var cardsFirst: any[] = [];
                 for (let i = 0; i < elements.length; i++) {
@@ -155,18 +168,22 @@ function App() {
                 var deckFirst = cardsFirst.slice(5);
                 sethand(handFirst);
 
+                // DBにaddする
                 collection_game.add({
-                  gameID: gameIDFirst,
-                  roomName: myname,
+                  gameID: randomGameID,
                   roomID: roomID,
-                  applyName: 'nobody',
+                  userNameList: [myname,],
+                  userIDList: [randomMyID,],
                   decks: deckFirst,
                   stage: 1,
                   scores: [],
                 })
                   .then(doc => {
                     console.log("doc = " + doc);
+                    setParent(true);
                     setStage(1);
+                    // setUserNameList(userNameList.push(myname));
+                    // setUserIDList(userIDList.push(myID));
                   })
                   .catch(error => {
                     console.log("error = " + error);
@@ -175,24 +192,36 @@ function App() {
               部屋を作る
               </button>
           </div>
+
           <div>参加する：<input placeholder="半角数字を入力"
             onChange={(e) =>
               setApplyID(Number(e.target.value))
             } />
             <button className="btn btn-primary"
               onClick={() => {
-                collection_game.where('applyName', '==', 'nobody').where('roomID', '==', applyID).get()
+                var randomMyID = randomChar();
+                setMyID(randomMyID);
+
+                collection_game.where('stage', '==', 1).where('roomID', '==', applyID).get()
                   .then(snapshot => {
                     if (snapshot.empty) {
                       return;
                     }
+
                     snapshot.forEach(doc => {
+                      var userNameListTmp = doc.data().userNameList;
+                      var userIDListTmp = doc.data().userIDList;
+                      console.log(userNameListTmp);
+                      console.log(userIDListTmp);
+                      console.log(userNameListTmp.concat(myname));
+                      console.log(userIDListTmp.concat(randomMyID));
+
                       collection_game.doc(doc.id)
                         .set({
                           gameID: doc.data().gameID,
-                          roomName: doc.data().roomName,
                           roomID: doc.data().roomID,
-                          applyName: myname,
+                          userNameList: userNameListTmp.concat(myname),
+                          userIDList: userIDListTmp.concat(randomMyID),
                           decks: doc.data().decks.slice(5),
                           stage: 1,
                           scores: doc.data().scores,
@@ -202,8 +231,7 @@ function App() {
                           sethand(doc.data().decks.slice(0, 5));
 
                           setGameID(doc.data().gameID);
-                          setEnemyname(doc.data().roomName);
-                          setStage(2);
+                          setStage(1);
                         })
                         .catch(err => {
                           console.log("err = " + err);
@@ -220,17 +248,24 @@ function App() {
           </div>
         </div>
       }
+
       {stage === 1 &&
         <div>
           <div>ようこそ、{myname}さん</div>
           <div>対戦相手を探しています。。。</div>
+          {parent &&
+            <button className="btn btn-primary">ゲームスタート</button>
+          }
+          <div>ユーザー一覧</div>
+          <div>{userNameList}</div>
         </div>
       }
+
       {stage >= 2 &&
         <div>
           <div>gameID: {gameID}</div>
           <div>自分の名前：{myname}</div>
-          <div>相手の名前：{enemyname}</div>
+          <div>相手の名前一覧</div>
           <div style={{ display: "flex" }} className="row">
             <div className="col-1"></div>
             {hands.map((data, key) => {
