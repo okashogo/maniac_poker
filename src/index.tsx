@@ -59,6 +59,7 @@ function App() {
   const [applyID, setApplyID] = useState(0);
   // const [enemyname, setEnemyname] = useState("");
   const [stage, setStage] = useState(0);
+  const [createApp, setCreateApp] = useState(false);
   const [parent, setParent] = useState(false);
 
 
@@ -277,6 +278,15 @@ function App() {
               申し込む
               </button>
           </div>
+          <div>
+            <button className="btn btn-info"
+              onClick={() => {
+                console.log('make_card');
+                setCreateApp(true);
+                setStage(-1);
+              }}
+              >カードを作る</button>
+          </div>
         </div>
       }
 
@@ -477,6 +487,145 @@ function App() {
         }}>
           ドロー
         </button>
+      }
+      {createApp &&
+        <div>
+          <h2><b>カード作成画面</b></h2>
+          <h2>
+            タイトル：<input value="スマブラ"/>
+          </h2>
+          <hr />
+          <h4>
+            役１:<input value="シリーズ"/>
+          </h4>
+          <h4>
+            役２:<input value="武器"/>
+          </h4>
+          <h4>
+            役３:<input />
+          </h4>
+          <h4>
+            役４:<input />
+          </h4>
+          <h4>
+            役５:<input />
+          </h4>
+          <button type="button" className="btn btn-primary rounded-circle p-0" style={{width:25, height:25}}>＋</button>
+          <hr />
+          <div className="row">
+            <h5 className="col-2">
+              シリーズ(役1):
+              <div><input value="スーパーマリオ"/></div>
+              <div><input value="ドンキーコング"/></div>
+              <div><input value="ゼルダの伝説"/></div>
+              <div><input value="METROID"/></div>
+              <div><input value="YOSHI"/></div>
+              <div><input value="星のカービー"/></div>
+              <button type="button" className="btn btn-primary rounded-circle p-0" style={{width:25, height:25}}>＋</button>
+            </h5>
+            <div className="col-1"></div>
+            <h5 className="col-2">
+              武器(役2):
+              <div><input value="素手"/></div>
+              <div><input value="飛び道具"/></div>
+              <div><input value="魔法"/></div>
+              <div><input value="剣"/></div>
+            </h5>
+          </div>
+          <hr />
+          <table className="table">
+            <tr>
+              <td>カード1:</td>
+              <td><input value="マリオ"/></td>
+              <td>シリーズ:
+              <select>
+                <option selected>スーパーマリオ</option>
+                <option>ドンキーコング</option>
+                <option>ゼルダの伝説</option>
+                <option>METROID</option>
+                <option>YOSHI</option>
+                <option>星のカービー</option>
+              </select>
+              </td>
+              <td>武器:
+              <select>
+                <option selected>素手</option>
+                <option>飛び道具</option>
+                <option>魔法</option>
+                <option>剣</option>
+              </select>
+              </td>
+            </tr>
+            <tr>
+              <td>カード2:</td>
+              <td><input value="ドンキー"/></td>
+              <td>シリーズ:
+              <select>
+                <option>スーパーマリオ</option>
+                <option selected>ドンキーコング</option>
+                <option>ゼルダの伝説</option>
+                <option>METROID</option>
+                <option>YOSHI</option>
+                <option>星のカービー</option>
+              </select>
+              </td>
+              <td>武器:
+              <select>
+                <option selected>素手</option>
+                <option>飛び道具</option>
+                <option>魔法</option>
+                <option>剣</option>
+              </select>
+              </td>
+            </tr>
+            <tr>
+              <td>カード3:</td>
+              <td><input value="リンク"/></td>
+              <td>シリーズ:
+              <select>
+                <option>スーパーマリオ</option>
+                <option>ドンキーコング</option>
+                <option selected>ゼルダの伝説</option>
+                <option>METROID</option>
+                <option>YOSHI</option>
+                <option>星のカービー</option>
+              </select>
+              </td>
+              <td>武器:
+                <select>
+                  <option>素手</option>
+                  <option selected>飛び道具</option>
+                  <option>魔法</option>
+                  <option>剣</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>カード4:</td>
+              <td><input value="サムス"/></td>
+              <td>シリーズ:
+              <select>
+                <option>スーパーマリオ</option>
+                <option>ドンキーコング</option>
+                <option>ゼルダの伝説</option>
+                <option selected>METROID</option>
+                <option>YOSHI</option>
+                <option>星のカービー</option>
+              </select>
+              </td>
+              <td>武器:
+              <select>
+                <option>素手</option>
+                <option>飛び道具</option>
+                <option selected>魔法</option>
+                <option>剣</option>
+              </select>
+              </td>
+            </tr>
+            <button type="button" className="btn btn-primary rounded-circle p-0" style={{width:25, height:25}}>＋</button>
+            <hr />
+          </table>
+        </div>
       }
     </div>
   );
