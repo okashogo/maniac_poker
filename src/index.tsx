@@ -61,19 +61,13 @@ function App() {
   // ---------------useEffect from--------------------------
   useEffect(() => {
     if (stage === 1) {
+      asyncFunc();
+
       collection_game.onSnapshot(async snapshot => {
         snapshot.docChanges().forEach(async change => {
-
-          // DBが変更されていたら、このif文は通らない
           if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.indexOf(myID) === -1 && change.doc.data().stage === 1) {
             var readListFlagTnp = change.doc.data().readListFlag.concat(myID);
-
-            console.log('applyed!!!');
-            console.log(change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.length === myNumber && change.doc.data().stage === 1);
-            console.log(myID);
-            console.log(readListFlagTnp);
-            console.log(readListFlagTnp.indexOf(myID) === -1);
-            // ここでDBを変更
+            // console.log('applyed!!!');
             await collection_game.doc(change.doc.id)
               .set({
                 gameID: change.doc.data().gameID,
@@ -88,28 +82,6 @@ function App() {
 
             setUserNameList(change.doc.data().userNameList)
             setUserIDList(change.doc.data().userIDList);
-          }
-
-          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.length === myNumber && change.doc.data().stage === 2) {
-
-            console.log('start!!!');
-            console.log(myNumber);
-            console.log(change.doc.data().readListFlag.length);
-            console.log(change.doc.data().readListFlag);
-            await collection_game.doc(change.doc.id)
-              .set({
-                gameID: change.doc.data().gameID,
-                roomID: change.doc.data().roomID,
-                userNameList: change.doc.data().userNameList,
-                userIDList: change.doc.data().userIDList,
-                readListFlag: change.doc.data().readListFlag.concat(myID),
-                decks: change.doc.data().decks.slice(5),
-                stage: 2,
-                scores: change.doc.data().scores,
-              })
-            console.log("snapshot = " + snapshot);
-            sethand(change.doc.data().decks.slice(0, 5));
-            setStage(2);
           }
 
           if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 3) {
@@ -146,6 +118,39 @@ function App() {
       });
     }
   });
+
+  const asyncFunc = async () => {
+    await new Promise(collectionGameSnapshot);
+  }
+
+
+  function collectionGameSnapshot() {
+    collection_game.onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        // if文の中でDBが変更されたら、このif文は通らないので、一回しか通らないようにしています。
+        // change.doc.data().readListFlag.length が myNumber(参加した順) のときにしか読み込まないようにしています。
+        if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.length === myNumber && change.doc.data().stage === 2) {
+          console.log('game start!!!');
+
+          // ここでDBを変更
+          collection_game.doc(change.doc.id)
+            .set({
+              gameID: change.doc.data().gameID,
+              roomID: change.doc.data().roomID,
+              userNameList: change.doc.data().userNameList,
+              userIDList: change.doc.data().userIDList,
+              readListFlag: change.doc.data().readListFlag.concat(myID),// ここで、readListFlag.length を変更
+              decks: change.doc.data().decks.slice(5),
+              stage: 2,
+              scores: change.doc.data().scores,
+            })
+          // console.log("snapshot = " + snapshot);
+          sethand(change.doc.data().decks.slice(0, 5));
+          setStage(2);
+        }
+      })
+    });
+  }
   // ---------------useEffect to--------------------------
 
   // ---------------render from--------------------------
