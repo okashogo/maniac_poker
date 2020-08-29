@@ -12,6 +12,8 @@ import drawScore from './importFile/drawScore';
 import { titles, elements } from './importFile/testdb';
 import drawHand from './importFile/drawHand';
 import calTotal from './importFile/calTotal';
+import bgcChange from './importFile/bgcChange';
+import randomChar from './importFile/randomChar';
 // import drawDeck from './importFile/drawDeck';
 
 // Initialize Firebase
@@ -22,32 +24,23 @@ export const auth = firebase.auth();
 export const db = firebase.firestore();
 
 const collection_game = db.collection('game');
+// gameテーブルに保存するカラム
+// gameID:
+// roomID:
+// userNameList:
+// userIDList:
+// readListFlag:
+// decks:
+// stage:
+// scores:
+// winner:
 
 function Img(props: any) {
   // 最初のnullはカウントしない
   return <img style={{ height: "150px" }} src={props.src} />;
 }
 
-function bgcChange(key: number, select: any[]) {
-  if (select.includes(key)) {
-    return "red";
-  }
-  return
-}
-
-function randomChar() {
-  var l = 8;
-  var c = "abcdefghijklmnopqrstuvwxyz0123456789";
-  var cl = c.length;
-  var randomChar = "";
-  for (var i = 0; i < l; i++) {
-    randomChar += c[Math.floor(Math.random() * cl)];
-  }
-  return randomChar;
-}
-
 function App() {
-
 
   const [gameID, setGameID] = useState("");
   const [myname, setMyname] = useState("");
@@ -57,17 +50,15 @@ function App() {
   const [userIDList, setUserIDList] = useState([]);
   const [roomID, setRoomID] = useState(0);
   const [applyID, setApplyID] = useState(0);
-  // const [enemyname, setEnemyname] = useState("");
   const [stage, setStage] = useState(0);
-  const [createApp, setCreateApp] = useState(false);
+  const [isCreate, setIsCreate] = useState(false);
   const [parent, setParent] = useState(false);
-
-
   const [hands, sethand] = useState([{ name: "", img: "", element1: "", element2: "" }]);
   const [select, setSelect] = useState([null]);
   const [scores, setScore]: any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
   const [total, setTotal] = useState(0);
 
+  // ---------------useEffect from--------------------------
   useEffect(() => {
     if (stage === 1) {
       collection_game.onSnapshot(async snapshot => {
@@ -75,7 +66,7 @@ function App() {
 
           // DBが変更されていたら、このif文は通らない
           if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.indexOf(myID) === -1 && change.doc.data().stage === 1) {
-            var readListFlagTnp =  change.doc.data().readListFlag.concat(myID);
+            var readListFlagTnp = change.doc.data().readListFlag.concat(myID);
 
             console.log('applyed!!!');
             console.log(change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.length === myNumber && change.doc.data().stage === 1);
@@ -84,16 +75,16 @@ function App() {
             console.log(readListFlagTnp.indexOf(myID) === -1);
             // ここでDBを変更
             await collection_game.doc(change.doc.id)
-            .set({
-              gameID: change.doc.data().gameID,
-              roomID: change.doc.data().roomID,
-              userNameList: change.doc.data().userNameList,
-              userIDList: change.doc.data().userIDList,
-              readListFlag: readListFlagTnp,
-              decks: change.doc.data().decks,
-              stage: 1,
-              scores: change.doc.data().scores,
-            });
+              .set({
+                gameID: change.doc.data().gameID,
+                roomID: change.doc.data().roomID,
+                userNameList: change.doc.data().userNameList,
+                userIDList: change.doc.data().userIDList,
+                readListFlag: readListFlagTnp,
+                decks: change.doc.data().decks,
+                stage: 1,
+                scores: change.doc.data().scores,
+              });
 
             setUserNameList(change.doc.data().userNameList)
             setUserIDList(change.doc.data().userIDList);
@@ -116,14 +107,9 @@ function App() {
                 stage: 2,
                 scores: change.doc.data().scores,
               })
-              // .then(snapshot => {
-              console.log("snapshot = " + snapshot);
-              sethand(change.doc.data().decks.slice(0, 5));
-              setStage(2);
-              // })
-              // .catch(err => {
-              //   console.log("err = " + err);
-              // });
+            console.log("snapshot = " + snapshot);
+            sethand(change.doc.data().decks.slice(0, 5));
+            setStage(2);
           }
 
           if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 3) {
@@ -142,13 +128,13 @@ function App() {
               .then(snapshot => {
                 console.log("snapshot = " + snapshot);
 
-                if(change.doc.data().winner === myname){
+                if (change.doc.data().winner === myname) {
                   alert("あなたの勝ちです。")
                 }
-                else if(change.doc.data().winner === "draw"){
+                else if (change.doc.data().winner === "draw") {
                   alert("引き分けです。")
                 }
-                else{
+                else {
                   alert("あなたの負けです。")
                 }
               })
@@ -160,10 +146,13 @@ function App() {
       });
     }
   });
+  // ---------------useEffect to--------------------------
 
+  // ---------------render from--------------------------
   const element = (
     <div className="container-fluid">
       {stage === 0 &&
+        //---------------stage=0 from (初期画面)-----------------------
         <div>
           <div>ニックネーム：<input placeholder="ニックネームを入力"
             onChange={(e) =>
@@ -175,6 +164,7 @@ function App() {
             onChange={(e) =>
               setRoomID(Number(e.target.value))
             } />
+
             <button className="btn btn-primary"
               onClick={() => {
                 //ランダムなGammeIDを作成
@@ -215,8 +205,6 @@ function App() {
                     setParent(true);
                     setStage(1);
                     setMyNumber(0);
-                    // setUserNameList(userNameList.push(myname));
-                    // setUserIDList(userIDList.push(myID));
                   })
                   .catch(error => {
                     console.log("error = " + error);
@@ -230,6 +218,7 @@ function App() {
             onChange={(e) =>
               setApplyID(Number(e.target.value))
             } />
+
             <button className="btn btn-primary"
               onClick={() => {
                 var randomMyID = randomChar();
@@ -282,19 +271,22 @@ function App() {
               申し込む
               </button>
           </div>
+
           <div>
             <button className="btn btn-info"
               onClick={() => {
                 console.log('make_card');
-                setCreateApp(true);
+                setIsCreate(true);
                 setStage(-1);
               }}
-              >カードを作る</button>
+            >カードを作る</button>
           </div>
         </div>
+        // ---------------stage=0 to (初期画面)--------------------------
       }
 
       {stage === 1 &&
+        // ---------------stage=1 from (対戦相手を探し中)--------------------------
         <div>
           <div>ようこそ、{myname}さん</div>
           <div>対戦相手を探しています。。。</div>
@@ -343,9 +335,11 @@ function App() {
             return <div>{data}さん</div>
           })}
         </div>
+        // ---------------stage=1 to (対戦相手を探し中)--------------------------
       }
 
       {stage >= 2 &&
+        // ---------------stage ＞= 2 from (ゲーム内容)--------------------------
         <div>
           <div>gameID: {gameID}</div>
           <div>自分の名前：{myname}</div>
@@ -406,8 +400,11 @@ function App() {
             </div>
           }
         </div>
+        // ---------------stage ＞= 2 to (ゲーム内容)--------------------------
       }
+
       {stage === 2 &&
+        // ---------------stage = 2 from (ドロー)--------------------------
         <button className="btn btn-primary" onClick={() => {
           collection_game.where('gameID', '==', gameID).get()
             .then(snapshot => {
@@ -428,42 +425,30 @@ function App() {
                 setSelect([null]);
                 setStage(3);
 
-                var concatScores = doc.data().scores.concat({name:myname, score:myScoreTmp});
+                var concatScores = doc.data().scores.concat({ name: myname, score: myScoreTmp });
 
                 var winner: string = "nobody";
                 var upStage: number = 0;
 
-                if(concatScores.length == doc.data().userNameList.length){
+                // 最後の人だった場合
+                if (concatScores.length === doc.data().userNameList.length) {
                   console.log("finish");
                   // 対戦相手が複数の場合
-                  let getScores:number[] = [];
+                  let getScores: number[] = [];
                   for (let i = 0; i < concatScores.length; i++) {
-                      getScores.push(concatScores[i].score);
+                    getScores.push(concatScores[i].score);
                   }
                   console.log(getScores);
-                  console.log(Math.max.apply(null,getScores));
-                  console.log(getScores.indexOf(Math.max.apply(null,getScores)));
-                  var winnerNumber = getScores.indexOf(Math.max.apply(null,getScores));
-                  // if(concatScores[0].score > concatScores[1].score){
-                  // console.log(concatScores[0].name + "さんの勝利");
+                  console.log(Math.max.apply(null, getScores));
+                  console.log(getScores.indexOf(Math.max.apply(null, getScores)));
+                  var winnerNumber = getScores.indexOf(Math.max.apply(null, getScores));
                   winner = concatScores[winnerNumber].name;
                   console.log(winner + "さんの勝利");
-                  // }
-                  // else if(concatScores[0].score === concatScores[1].score){
-                  //   // console.log("同点");
-                  //   winner = "draw";
-                  // }
-                  // else{
-                  //   // console.log(concatScores[1].name + "さんの勝利");
-                  //   winner = concatScores[1].name;
-                  // }
                   setStage(3);
 
                   upStage = 1;
                 }
 
-                // 次回、ここに得点カラムを追加させる
-                // 得点カラムは配列で 長さは人数分 初期値は -1 すべてが 0以上になると、stageを3に上げて終了する。
                 collection_game.doc(doc.id)
                   .set({
                     gameID: doc.data().gameID,
@@ -494,148 +479,22 @@ function App() {
         }}>
           ドロー
         </button>
+        // ---------------stage = 2 to (ドロー)--------------------------
       }
-      {createApp &&
+
+      {isCreate &&
+        // ---------------isCreate = true from (create画面)--------------------------
         <div>
           <h2><b>カード作成画面</b></h2>
           <h2>
-            タイトル：<input value="スマブラ"/>
+            タイトル：<input value="スマブラ" />
           </h2>
-          <hr />
-          <h4>
-            役１:<input value="シリーズ"/>
-          </h4>
-          <h4>
-            役２:<input value="武器"/>
-          </h4>
-          <h4>
-            役３:<input />
-          </h4>
-          <h4>
-            役４:<input />
-          </h4>
-          <h4>
-            役５:<input />
-          </h4>
-          <button type="button" className="btn btn-primary rounded-circle p-0" style={{width:25, height:25}}>＋</button>
-          <hr />
-          <div className="row">
-            <h5 className="col-2">
-              シリーズ(役1):
-              <div><input value="スーパーマリオ"/></div>
-              <div><input value="ドンキーコング"/></div>
-              <div><input value="ゼルダの伝説"/></div>
-              <div><input value="METROID"/></div>
-              <div><input value="YOSHI"/></div>
-              <div><input value="星のカービー"/></div>
-              <button type="button" className="btn btn-primary rounded-circle p-0" style={{width:25, height:25}}>＋</button>
-            </h5>
-            <div className="col-1"></div>
-            <h5 className="col-2">
-              武器(役2):
-              <div><input value="素手"/></div>
-              <div><input value="飛び道具"/></div>
-              <div><input value="魔法"/></div>
-              <div><input value="剣"/></div>
-            </h5>
-          </div>
-          <hr />
-          <table className="table">
-            <tr>
-              <td>カード1:</td>
-              <td><input value="マリオ"/></td>
-              <td>シリーズ:
-              <select>
-                <option selected>スーパーマリオ</option>
-                <option>ドンキーコング</option>
-                <option>ゼルダの伝説</option>
-                <option>METROID</option>
-                <option>YOSHI</option>
-                <option>星のカービー</option>
-              </select>
-              </td>
-              <td>武器:
-              <select>
-                <option selected>素手</option>
-                <option>飛び道具</option>
-                <option>魔法</option>
-                <option>剣</option>
-              </select>
-              </td>
-            </tr>
-            <tr>
-              <td>カード2:</td>
-              <td><input value="ドンキー"/></td>
-              <td>シリーズ:
-              <select>
-                <option>スーパーマリオ</option>
-                <option selected>ドンキーコング</option>
-                <option>ゼルダの伝説</option>
-                <option>METROID</option>
-                <option>YOSHI</option>
-                <option>星のカービー</option>
-              </select>
-              </td>
-              <td>武器:
-              <select>
-                <option selected>素手</option>
-                <option>飛び道具</option>
-                <option>魔法</option>
-                <option>剣</option>
-              </select>
-              </td>
-            </tr>
-            <tr>
-              <td>カード3:</td>
-              <td><input value="リンク"/></td>
-              <td>シリーズ:
-              <select>
-                <option>スーパーマリオ</option>
-                <option>ドンキーコング</option>
-                <option selected>ゼルダの伝説</option>
-                <option>METROID</option>
-                <option>YOSHI</option>
-                <option>星のカービー</option>
-              </select>
-              </td>
-              <td>武器:
-                <select>
-                  <option>素手</option>
-                  <option selected>飛び道具</option>
-                  <option>魔法</option>
-                  <option>剣</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td>カード4:</td>
-              <td><input value="サムス"/></td>
-              <td>シリーズ:
-              <select>
-                <option>スーパーマリオ</option>
-                <option>ドンキーコング</option>
-                <option>ゼルダの伝説</option>
-                <option selected>METROID</option>
-                <option>YOSHI</option>
-                <option>星のカービー</option>
-              </select>
-              </td>
-              <td>武器:
-              <select>
-                <option>素手</option>
-                <option>飛び道具</option>
-                <option selected>魔法</option>
-                <option>剣</option>
-              </select>
-              </td>
-            </tr>
-            <button type="button" className="btn btn-primary rounded-circle p-0" style={{width:25, height:25}}>＋</button>
-            <hr />
-          </table>
         </div>
+        // ---------------isCreate = true to (create画面)--------------------------
       }
     </div>
   );
+  // ---------------render to--------------------------
   return (
     element
   );

@@ -28,7 +28,7 @@ export default function drawScore(hands: any[], scoresLength: number) {
       //多色
       for (let j = 0; j < handsTmp[i].element2.length; j++) {
         //配列内にcolorがすでに登録されていれば、カウントを +1 する
-        var isPair: boolean = false;
+        isPair = false;
         for (let k = 0; k < element2List.length; k++) {
           if (element2List[k][0] === handsTmp[i].element2[j]) {
             element2List[k][1] += 1;
@@ -48,7 +48,7 @@ export default function drawScore(hands: any[], scoresLength: number) {
     }
     else {
       //単色
-      var isPair: boolean = false;
+      isPair = false;
       for (let k = 0; k < element2List.length; k++) {
         if (element2List[k][0] === handsTmp[i].element2) {
           element2List[k][1] += 1;
@@ -103,7 +103,7 @@ function addCalculate(list:any[], listLength:number){
 function pairCount(list: number[], pairNum: number){
   var pairCount:number = 0;
   for (let i = 0; i < list.length; i++) {
-      if(list[i] == pairNum){
+      if(list[i] === pairNum){
         pairCount++;
       }
   }
