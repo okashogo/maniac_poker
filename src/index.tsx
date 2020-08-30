@@ -58,6 +58,8 @@ function App() {
   const [scores, setScore]: any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
   const [total, setTotal] = useState(0);
 
+  const [modifiedFlag, setModifiedFlag] = useState(false);
+
   // ---------------useEffect from--------------------------
   useEffect(() => {
     if (stage === 1) {
@@ -120,7 +122,11 @@ function App() {
   });
 
   const asyncFunc = async () => {
-    await new Promise(collectionGameSnapshot);
+      return new Promise(() => {
+        // setInterval(() => {
+          collectionGameSnapshot();
+        // }, 2000)
+      })
   }
 
 
@@ -129,24 +135,10 @@ function App() {
       snapshot.docChanges().forEach(change => {
         // if文の中でDBが変更されたら、このif文は通らないので、一回しか通らないようにしています。
         // change.doc.data().readListFlag.length が myNumber(参加した順) のときにしか読み込まないようにしています。
-        if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.length === myNumber && change.doc.data().stage === 2) {
+        if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 2) {
           console.log('game start!!!');
-
-          // ここでDBを変更
-          collection_game.doc(change.doc.id)
-            .set({
-              gameID: change.doc.data().gameID,
-              roomID: change.doc.data().roomID,
-              userNameList: change.doc.data().userNameList,
-              userIDList: change.doc.data().userIDList,
-              readListFlag: change.doc.data().readListFlag.concat(myID),// ここで、readListFlag.length を変更
-              decks: change.doc.data().decks.slice(5),
-              stage: 2,
-              scores: change.doc.data().scores,
-            })
-          // console.log("snapshot = " + snapshot);
-          sethand(change.doc.data().decks.slice(0, 5));
           setStage(2);
+          return;
         }
       })
     });
