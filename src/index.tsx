@@ -54,7 +54,7 @@ function App() {
   const [select, setSelect] = useState([null]);
   const [scores, setScore]: any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
   const [total, setTotal] = useState(0);
-  
+
   // ---------------useEffect from--------------------------
   useEffect(() => {
 		if(gameID){
@@ -184,6 +184,7 @@ function App() {
                           readListFlag: [],
                           stage: 1,
                           scores: doc.data().scores,
+                          updateAt: firebase.firestore.FieldValue.serverTimestamp(),
                         })
                         .then(snapshot => {
                           console.log("snapshot = " + snapshot);
