@@ -41,12 +41,10 @@ function Img(props: any) {
 }
 
 function App() {
+	console.log('render');
   const [gameID, setGameID] = useState("");
   const [myname, setMyname] = useState("");
-  const [myID, setMyID] = useState("");
-  const [myNumber, setMyNumber] = useState(-1);
   const [userNameList, setUserNameList] = useState([]);
-  const [userIDList, setUserIDList] = useState([]);
   const [roomID, setRoomID] = useState(0);
   const [applyID, setApplyID] = useState(0);
   const [stage, setStage] = useState(0);
@@ -59,98 +57,32 @@ function App() {
   
   // ---------------useEffect from--------------------------
   useEffect(() => {
-    if (stage === 1) {
-      asyncFunc();
-
-      collection_game.onSnapshot(async snapshot => {
+		if(gameID){
+      collection_game.where('gameID', '==', gameID).onSnapshot(async snapshot => {
         snapshot.docChanges().forEach(async change => {
-          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().readListFlag.indexOf(myID) === -1 && change.doc.data().stage === 1) {
-            var readListFlagTnp = change.doc.data().readListFlag.concat(myID);
-            // console.log('applyed!!!');
-            await collection_game.doc(change.doc.id)
-              .set({
-                gameID: change.doc.data().gameID,
-                roomID: change.doc.data().roomID,
-                userNameList: change.doc.data().userNameList,
-                userIDList: change.doc.data().userIDList,
-                readListFlag: readListFlagTnp,
-                decks: change.doc.data().decks,
-                stage: 1,
-                scores: change.doc.data().scores,
-              });
+					const data = change.doc.data();
+					if(change.doc.data().gameID === gameID){
+						setStage(data.stage);
+						if(data.stage === 1){
+							setUserNameList(data.userNameList)
+						} else if(data.stage === 3){
+							setTimeout(() => {
+								if(data.winner === myname){
+									alert("あなたの勝ちです。");
+								}
+								else if(data.winner === "draw"){
+									alert("引き分けです。");
+								} else{
+									alert("あなたの負けです。");
+								}
+							},1000);
+						}
+					}
+				});
+			});
+		}
+	},[gameID]);
 
-            setUserNameList(change.doc.data().userNameList)
-            setUserIDList(change.doc.data().userIDList);
-          }
-
-          if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 3) {
-            collection_game.doc(change.doc.id)
-              .set({
-                gameID: change.doc.data().gameID,
-                roomID: change.doc.data().roomID,
-                userNameList: change.doc.data().userNameList,
-                userIDList: change.doc.data().userIDList,
-                readListFlag: change.doc.data().readListFlag,
-                decks: change.doc.data().decks,
-                stage: 3,
-                scores: change.doc.data().scores,
-                winner: change.doc.data().winner,
-              })
-              .then(snapshot => {
-                console.log("snapshot = " + snapshot);
-
-                if (change.doc.data().winner === myname) {
-                  alert("あなたの勝ちです。")
-                }
-                else if (change.doc.data().winner === "draw") {
-                  alert("引き分けです。")
-                }
-                else {
-                  alert("あなたの負けです。")
-                }
-              })
-              .catch(err => {
-                console.log("err = " + err);
-              });
-          }
-        })
-      });
-    }
-  });
-
-  // async/awaitテスト
-  const asyncFunc = async () => {
-    return new Promise(() => {
-        collectionGameSnapshot();
-    })
-  }
-  function collectionGameSnapshot() {
-    collection_game.onSnapshot(snapshot => {
-      snapshot.docChanges().forEach(change => {
-        // if文の中でDBが変更されたら、このif文は通らないので、一回しか通らないようにしています。
-        // change.doc.data().readListFlag.length が myNumber(参加した順) のときにしか読み込まないようにしています。
-        if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 2 && change.doc.data().readListFlag.length === myNumber) {
-          console.log('game start!!!');
-
-          // ここでDBを変更
-          collection_game.doc(change.doc.id)
-            .set({
-              gameID: change.doc.data().gameID,
-              roomID: change.doc.data().roomID,
-              userNameList: change.doc.data().userNameList,
-              userIDList: change.doc.data().userIDList,
-              readListFlag: change.doc.data().readListFlag.concat(myID),// ここで、readListFlag.length を変更
-              decks: change.doc.data().decks,
-              stage: 2,
-              scores: change.doc.data().scores,
-            })
-
-          setStage(2);
-
-        }
-      })
-    });
-  }
   // ---------------useEffect to--------------------------
 
   // ---------------render from--------------------------
@@ -176,7 +108,6 @@ function App() {
                 var randomGameID = randomChar();
                 setGameID(randomGameID);
                 var randomMyID = randomChar();
-                setMyID(randomMyID);
 
                 // 初期設定
                 var cardsFirst: any[] = [];
@@ -204,12 +135,12 @@ function App() {
                   readListFlag: [],
                   stage: 1,
                   scores: [],
+									updateAt: firebase.firestore.FieldValue.serverTimestamp(),
                 })
                   .then(doc => {
                     console.log("doc = " + doc);
                     setParent(true);
                     setStage(1);
-                    setMyNumber(0);
                   })
                   .catch(error => {
                     console.log("error = " + error);
@@ -227,18 +158,21 @@ function App() {
             <button className="btn btn-primary"
               onClick={() => {
                 var randomMyID = randomChar();
-                setMyID(randomMyID);
 
-                collection_game.where('stage', '==', 1).where('roomID', '==', applyID).get()
+								collection_game.where('stage', '==', 1)
+									.where('roomID', '==', applyID)
+									.orderBy('updateAt', 'desc')
+									.limit(1)
+									.get()
                   .then(snapshot => {
                     if (snapshot.empty) {
                       return;
                     }
 
                     snapshot.forEach(async doc => {
+											console.log(doc.data(), 'data');
                       var userNameListTmp = doc.data().userNameList;
                       var userIDListTmp = doc.data().userIDList;
-                      setMyNumber(doc.data().userNameList.length);
 
                       await collection_game.doc(doc.id)
                         .set({
@@ -331,7 +265,7 @@ function App() {
 
           <div>ユーザー一覧</div>
           {userNameList.map((data) => {
-            return <div>{data}さん</div>
+            return <div key={data}>{data}さん</div>
           })}
         </div>
         // ---------------stage=1 to (対戦相手を探し中)--------------------------
@@ -347,7 +281,7 @@ function App() {
             <div className="col-1"></div>
             {hands.map((data, key) => {
               return (
-                <div className="col-2 text-center"
+                <div key={key} className="col-2 text-center"
                   style={{ background: bgcChange(key, select) }}
                   onClick={() => {
                     let newSetSelect: any[] = select.concat();
@@ -380,7 +314,7 @@ function App() {
               </div>
               {hands.map((data, key) => {
                 return (
-                  <div className="col-2 text-center" style={{ background: bgcChange(key, select) }}>
+                  <div key={key} className="col-2 text-center" style={{ background: bgcChange(key, select) }}>
                     <div>{data.element1}</div>
                     <div>{data.element2}</div>
                   </div>
