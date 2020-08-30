@@ -20,71 +20,7 @@ export default function drawScore(hands: any[]) {
     elementList.push({ pairName: roles[i].name, pairsCount: pairCount })
   }
 
-  // // element1Listの作成
-  // for (let i = 0; i < handsTmp.length; i++) {
-  //   //単色
-  //   var isPair: boolean = false;
-  //   for (let k = 0; k < element1List.length; k++) {
-  //     if (element1List[k][0] === handsTmp[i].element1) {
-  //       element1List[k][1] += 1;
-  //       isPair = true;
-  //       break;
-  //     }
-  //   }
-  //   // pairがなかったときのみ出力
-  //   if (!isPair) {
-  //     element1List.push([handsTmp[i].element1, 1]);
-  //   }
-  // }
-
-  // // element2Listの作成
-  // for (let i = 0; i < handsTmp.length; i++) {
-  //   if (Array.isArray(handsTmp[i].element2)) {
-  //     //多色
-  //     for (let j = 0; j < handsTmp[i].element2.length; j++) {
-  //       //配列内にcolorがすでに登録されていれば、カウントを +1 する
-  //       isPair = false;
-  //       for (let k = 0; k < element2List.length; k++) {
-  //         if (element2List[k][0] === handsTmp[i].element2[j]) {
-  //           element2List[k][1] += 1;
-  //           isPair = true;
-  //           break;
-  //         }
-  //       }
-  //
-  //       // pairがなかったときのみ出力
-  //       if (!isPair) {
-  //         element2List.push([handsTmp[i].element2[j], 1]);
-  //       }
-  //     }
-  //   }
-  //   else if (handsTmp[i].element2 === "") {
-  //     continue;
-  //   }
-  //   else {
-  //     //単色
-  //     isPair = false;
-  //     for (let k = 0; k < element2List.length; k++) {
-  //       if (element2List[k][0] === handsTmp[i].element2) {
-  //         element2List[k][1] += 1;
-  //         isPair = true;
-  //         break;
-  //       }
-  //     }
-  //     // pairがなかったときのみ出力
-  //     if (!isPair) {
-  //       element2List.push([handsTmp[i].element2, 1]);
-  //     }
-  //   }
-  // }
-
-  // var scoresTmp = Array(roles.length).fill(null);
-  // scoresTmp[0] = addCalculate(element1List, roles.length);
-  // scoresTmp[1] = addCalculate(element2List, roles.length);
-
-
   return elementList;
-  // return [{pairName: "ファイブカード x ",  pairsCount: 1}];
 }
 
 function addCalculate(list: any[], listLength: number) {

@@ -14,6 +14,7 @@ import drawHand from './importFile/drawHand';
 import calTotal from './importFile/calTotal';
 import bgcChange from './importFile/bgcChange';
 import randomChar from './importFile/randomChar';
+import changePairname from './importFile/changePairname';
 // import drawDeck from './importFile/drawDeck';
 
 // Initialize Firebase
@@ -319,7 +320,7 @@ function App() {
               <div className="col-2">
                 {scores.map((data: { [key: string]: any; }) => {
                   if (data.pairsCount >= 1) {
-                    return <div>{data.pairsCount}点</div>
+                    return <div>{changePairname(data.pairsCount)}</div>
                   }
                 })}
               </div>
