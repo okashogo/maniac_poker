@@ -309,10 +309,17 @@ function App() {
             <div style={{ display: "flex" }} className="row">
               <div className="col-1">
               </div>
-              <div className="col-6">
+              <div className="col-3">
                 {scores.map((data: { [key: string]: any; }) => {
                   if (data.pairsCount >= 1) {
-                    return <div>{data.pairName}{data.pairsCount}点</div>
+                    return <div>{data.pairName}</div>
+                  }
+                })}
+              </div>
+              <div className="col-2">
+                {scores.map((data: { [key: string]: any; }) => {
+                  if (data.pairsCount >= 1) {
+                    return <div>{data.pairsCount}点</div>
                   }
                 })}
               </div>
