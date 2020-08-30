@@ -6,6 +6,7 @@ import * as serviceWorker from './serviceWorker';
 import "firebase/auth";
 import firebase from "firebase";
 
+import Create from './create';
 import { firebaseConfig } from './firebaseConfig';
 import shuffle from './importFile/shuffle';
 import drawScore from './importFile/drawScore';
@@ -415,14 +416,9 @@ function App() {
         // ---------------stage = 2 to (ドロー)--------------------------
       }
 
-      {isCreate &&
+      {!isCreate &&
         // ---------------isCreate = true from (create画面)--------------------------
-        <div>
-          <h2><b>カード作成画面</b></h2>
-          <h2>
-            タイトル：<input value="スマブラ" />
-          </h2>
-        </div>
+        <Create />
         // ---------------isCreate = true to (create画面)--------------------------
       }
     </div>
