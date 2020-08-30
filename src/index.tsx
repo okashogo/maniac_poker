@@ -41,7 +41,6 @@ function Img(props: any) {
 }
 
 function App() {
-
   const [gameID, setGameID] = useState("");
   const [myname, setMyname] = useState("");
   const [myID, setMyID] = useState("");
@@ -57,9 +56,7 @@ function App() {
   const [select, setSelect] = useState([null]);
   const [scores, setScore]: any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
   const [total, setTotal] = useState(0);
-
-  const [modifiedFlag, setModifiedFlag] = useState(false);
-
+  
   // ---------------useEffect from--------------------------
   useEffect(() => {
     if (stage === 1) {
@@ -121,24 +118,35 @@ function App() {
     }
   });
 
+  // async/awaitテスト
   const asyncFunc = async () => {
-      return new Promise(() => {
-        // setInterval(() => {
-          collectionGameSnapshot();
-        // }, 2000)
-      })
+    return new Promise(() => {
+        collectionGameSnapshot();
+    })
   }
-
-
   function collectionGameSnapshot() {
     collection_game.onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
         // if文の中でDBが変更されたら、このif文は通らないので、一回しか通らないようにしています。
         // change.doc.data().readListFlag.length が myNumber(参加した順) のときにしか読み込まないようにしています。
-        if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 2) {
+        if (change.type === 'modified' && gameID === change.doc.data().gameID && change.doc.data().stage === 2 && change.doc.data().readListFlag.length === myNumber) {
           console.log('game start!!!');
+
+          // ここでDBを変更
+          collection_game.doc(change.doc.id)
+            .set({
+              gameID: change.doc.data().gameID,
+              roomID: change.doc.data().roomID,
+              userNameList: change.doc.data().userNameList,
+              userIDList: change.doc.data().userIDList,
+              readListFlag: change.doc.data().readListFlag.concat(myID),// ここで、readListFlag.length を変更
+              decks: change.doc.data().decks,
+              stage: 2,
+              scores: change.doc.data().scores,
+            })
+
           setStage(2);
-          return;
+
         }
       })
     });
@@ -230,10 +238,6 @@ function App() {
                     snapshot.forEach(async doc => {
                       var userNameListTmp = doc.data().userNameList;
                       var userIDListTmp = doc.data().userIDList;
-                      console.log(userNameListTmp);
-                      console.log(userIDListTmp);
-                      console.log(userNameListTmp.concat(myname));
-                      console.log(userIDListTmp.concat(randomMyID));
                       setMyNumber(doc.data().userNameList.length);
 
                       await collection_game.doc(doc.id)
@@ -250,9 +254,7 @@ function App() {
                         .then(snapshot => {
                           console.log("snapshot = " + snapshot);
                           sethand(doc.data().decks.slice(0, 5));
-
                           setGameID(doc.data().gameID);
-                          console.log(doc.data().gameID);
                           setStage(1);
                         })
                         .catch(err => {
