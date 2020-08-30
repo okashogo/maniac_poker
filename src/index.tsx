@@ -9,7 +9,7 @@ import firebase from "firebase";
 import { firebaseConfig } from './firebaseConfig';
 import shuffle from './importFile/shuffle';
 import drawScore from './importFile/drawScore';
-import { titles, elements } from './importFile/testdb';
+import { titles, roles, cards } from './importFile/testdb';
 import drawHand from './importFile/drawHand';
 import calTotal from './importFile/calTotal';
 import bgcChange from './importFile/bgcChange';
@@ -52,7 +52,7 @@ function App() {
   const [parent, setParent] = useState(false);
   const [hands, sethand] = useState([{ name: "", img: "", element1: "", element2: "" }]);
   const [select, setSelect] = useState([null]);
-  const [scores, setScore]: any[] = useState(Array(Object.keys(elements[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
+  const [scores, setScore]: any[] = useState(Array(Object.keys(cards[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
   const [total, setTotal] = useState(0);
 
   // ---------------useEffect from--------------------------
@@ -111,12 +111,10 @@ function App() {
 
                 // 初期設定
                 var cardsFirst: any[] = [];
-                for (let i = 0; i < elements.length; i++) {
+                for (let i = 0; i < cards.length; i++) {
                   cardsFirst[i] = {
-                    img: elements[i].img,
-                    name: elements[i].name,
-                    element1: elements[i].element1,
-                    element2: elements[i].element2,
+                    img: cards[i].img,
+                    name: cards[i].name,
                   };
                 }
                 cardsFirst = shuffle(cardsFirst);
@@ -310,23 +308,11 @@ function App() {
           {stage >= 3 &&
             <div style={{ display: "flex" }} className="row">
               <div className="col-1">
-                <div>{titles[0].element1}</div>
-                <div>{titles[0].element2}</div>
               </div>
-              {hands.map((data, key) => {
-                return (
-                  <div key={key} className="col-2 text-center" style={{ background: bgcChange(key, select) }}>
-                    <div>{data.element1}</div>
-                    <div>{data.element2}</div>
-                  </div>
-                )
-              })}
-              <div className="col-1">
+              <div className="col-6">
                 {scores.map((data: { [key: string]: any; }) => {
-                  if (data.length !== 1) {
+                  if (data.pairsCount >= 1) {
                     return <div>{data.pairName}{data.pairsCount}点</div>
-                  } else {
-                    return <div>ペアなし</div>
                   }
                 })}
               </div>
@@ -352,7 +338,10 @@ function App() {
                 var outputHnand = drawHand(decksTmp, hands, select);
                 sethand(outputHnand);
 
-                var outputScores = drawScore(outputHnand, scores.length);
+                var outputScores = drawScore(outputHnand);
+                console.log("outputScores");
+                console.log(outputScores);
+                console.log("outputScores");
                 setScore(outputScores);
                 var myScoreTmp = calTotal(outputScores);
                 setTotal(myScoreTmp);
@@ -375,6 +364,8 @@ function App() {
                   console.log(getScores);
                   console.log(Math.max.apply(null, getScores));
                   console.log(getScores.indexOf(Math.max.apply(null, getScores)));
+
+                  //Todo: 引き分けの判定をする。
                   var winnerNumber = getScores.indexOf(Math.max.apply(null, getScores));
                   winner = concatScores[winnerNumber].name;
                   console.log(winner + "さんの勝利");
