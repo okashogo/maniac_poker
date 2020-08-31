@@ -10,10 +10,12 @@ export default function Create(props: any) {
   console.log("Create_render");
 
   const [title, setTitle] = useState("");
-  const [cardsAry, setCard] = useState([{name: "", img:""}]);
-  const [rolesAry, setRoles] = useState([{name: "", contain:["",]}]);
+  const [cardsAry, setCard] = useState([{ name: "", img: "" }]);
+  const [rolesAry, setRoles] = useState([{ name: "", contain: ["",] }]);
 
-  useEffect(()=>{
+  const [newCardsAry, setNewCard] = useState({ name: "", img: "" });
+
+  useEffect(() => {
     collection_title.where('title', '==', props.slectTitle).get().then(snapshot => {
       snapshot.forEach(async doc => {
         setTitle(doc.data().title);
@@ -23,35 +25,58 @@ export default function Create(props: any) {
     }).catch(err => {
       console.log('Error getting documents', err);
     });
-  },[props]);
+  }, [props]);
 
   const dom = (
     <div>
       <h2><b>カード作成画面</b></h2>
       <button className="btn btn-primary" onClick={() => {
-        collection_title.add({
-          title: title,
-          cards: cardsAry,
-          roles: rolesAry,
-          updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+        collection_title.where('title', '==', title).get().then(snapshot => {
+          if (snapshot.empty) {
+            collection_title.add({
+              title: title,
+              cards: cardsAry,
+              roles: rolesAry,
+              updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+            })
+              .then(doc => {
+                console.log("doc = " + doc);
+                alert("DBを登録しました。")
+              })
+              .catch(error => {
+                console.log("error = " + error);
+              })
+          }
+          else {
+            snapshot.forEach(doc => {
+              console.log(doc);
+              collection_title.doc(doc.id)
+                .set({
+                  title: title,
+                  cards: cardsAry,
+                  roles: rolesAry,
+                  updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                })
+                .then(snapshot => {
+                  console.log(snapshot);
+                  alert("DBを変更しました。")
+                })
+                .catch(err => {
+                  console.log(err);
+                });
+
+            });
+          }
         })
-          .then(doc => {
-            console.log("doc = " + doc);
-            alert("DBを登録しました。")
-          })
-          .catch(error => {
-            console.log("error = " + error);
-          })
       }}>登録</button>
       <h2>
-        タイトル：<input defaultValue={title} />
+        タイトル： {title}
       </h2>
       <hr />
 
       <h2>
         カードマスタ
-        <input />
-    </h2>
+      </h2>
       <table className="table table-striped">
         <thead>
           <tr>
@@ -63,21 +88,55 @@ export default function Create(props: any) {
         </thead>
         <tbody>
           {cardsAry.map((data, key) => {
-            return (<tr key={"card"+key}>
+            return (<tr key={"card" + key}>
               <td><input defaultValue={data.name} onChange={(e) => {
                 var setCardTmp = cardsAry;
                 setCardTmp[key].name = e.target.value;
                 setCard(setCardTmp)
-              }}/></td>
+              }} /></td>
               <td>{data.img}</td>
               <td>
-                <button className="btn btn-primary">編集</button>
+                <button className="btn btn-primary" onClick={() => {
+                  collection_title.where('title', '==', title).get().then(snapshot => {
+                    if (snapshot.empty) {
+                      console.log("error: 同じタイトル名のDBがありません。")
+                      return;
+                    }
+                    else {
+                      snapshot.forEach(doc => {
+                        console.log(doc);
+                        collection_title.doc(doc.id)
+                          .set({
+                            title: title,
+                            cards: cardsAry,
+                            roles: rolesAry,
+                            updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                          })
+                          .then(snapshot => {
+                            console.log(snapshot);
+                          })
+                          .catch(err => {
+                            console.log(err);
+                          });
+
+                      });
+                    }
+                  })
+                }}>編集</button>
               </td>
             </tr>)
           })}
           <tr>
-            <td><input /></td>
-            <td><input defaultValue="なし" /></td>
+            <td><input defaultValue={newCardsAry.name} onChange={(e) => {
+              var newCardsAryTmp = newCardsAry;
+              newCardsAryTmp.name = e.target.value;
+              setNewCard(newCardsAryTmp);
+            }} /></td>
+            <td><input defaultValue={newCardsAry.img} onChange={(e) => {
+              var newCardsAryTmp = newCardsAry;
+              newCardsAryTmp.img = e.target.value;
+              setNewCard(newCardsAryTmp);
+            }} /></td>
             <td>
               <button className="btn btn-danger">追加</button>
             </td>
@@ -88,12 +147,12 @@ export default function Create(props: any) {
 
       <h2>
         役マスタ
-    </h2>
+      </h2>
       <div className="row">
         {rolesAry.map((role, key) => {
           return (<div className="border border-success" style={{ display: "flex" }} >
-            <div key={"rolename"+key}>{role.name}</div>
-            <div className="col-4" key={"roletable"+key}>
+            <div key={"rolename" + key}>{role.name}</div>
+            <div className="col-4" key={"roletable" + key}>
               <table className="table table-striped">
                 <thead>
                   <tr>
@@ -105,14 +164,14 @@ export default function Create(props: any) {
                   {cardsAry.map((card, key) => {
                     if (role.contain.includes(card.name)) {
                       return (
-                        <tr key={"check"+key}>
+                        <tr key={"check" + key}>
                           <td><input type="checkbox" checked /></td>
                           <td>{card.name}</td>
                         </tr>)
                     }
                     else {
                       return (
-                        <tr key={"check"+key}>
+                        <tr key={"check" + key}>
                           <td><input type="checkbox" /></td>
                           <td>{card.name}</td>
                         </tr>)
