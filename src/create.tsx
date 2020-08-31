@@ -14,8 +14,10 @@ export default function Create(props: any) {
   const [rolesAry, setRoles] = useState([{ name: "", contain: ["",] }]);
 
   const [newCardsAry, setNewCard] = useState({ name: "", img: "" });
+  const [newCardsFlag, setNewCardsFlag] = useState(false);
 
   useEffect(() => {
+    console.log("run useEffect");
     collection_title.where('title', '==', props.slectTitle).get().then(snapshot => {
       snapshot.forEach(async doc => {
         setTitle(doc.data().title);
@@ -25,7 +27,8 @@ export default function Create(props: any) {
     }).catch(err => {
       console.log('Error getting documents', err);
     });
-  }, [props]);
+    setNewCardsFlag(false);
+  }, [props, newCardsFlag]);
 
   const dom = (
     <div>
@@ -72,9 +75,6 @@ export default function Create(props: any) {
       <h2>
         タイトル：
         {title}
-        <input defaultValue={title} onChange={(e) => {
-          setTitle(e.target.value)
-        }}/>
       </h2>
       <hr />
 
@@ -155,6 +155,7 @@ export default function Create(props: any) {
                         })
                         .then(snapshot => {
                           console.log(snapshot);
+                          setNewCardsFlag(true);
                         })
                         .catch(err => {
                           console.log(err);
