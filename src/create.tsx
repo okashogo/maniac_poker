@@ -81,6 +81,7 @@ export default function Create(props: any) {
       <h2>
         カードマスタ
       </h2>
+      {false &&
       <table className="table table-striped">
         <thead>
           <tr>
@@ -167,6 +168,7 @@ export default function Create(props: any) {
           </tr>
         </tbody>
       </table>
+    }
       <hr />
 
       <h2>
@@ -189,14 +191,44 @@ export default function Create(props: any) {
                     if (role.contain.includes(card.name)) {
                       return (
                         <tr key={"check" + key}>
-                          <td><input type="checkbox" checked /></td>
+                          <td><input type="checkbox" checked onChange={() => {
+                            var rolesAryTmp = rolesAry;
+                            console.log("change");
+                            role.contain.splice(key, 1);
+                            console.log(role.contain);
+                            rolesAryTmp[key].contain = role.contain;
+                            collection_title.where('title', '==', title).get().then(snapshot => {
+                                snapshot.forEach(doc => {
+                                  console.log(doc);
+                                  collection_title.doc(doc.id)
+                                    .set({
+                                      title: title,
+                                      cards: cards,
+                                      roles: rolesAryTmp,
+                                      updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                    })
+                                    .then(snapshot => {
+                                      console.log(snapshot);
+                                      setNewCardsFlag(true);
+                                    })
+                                    .catch(err => {
+                                      console.log(err);
+                                    });
+                                });
+                            })
+                          }}/></td>
                           <td>{card.name}</td>
                         </tr>)
                     }
                     else {
                       return (
                         <tr key={"check" + key}>
-                          <td><input type="checkbox" /></td>
+                          <td><input type="checkbox" onChange={() => {
+                            console.log(role.name);
+                            console.log(cardsAry[key].name);
+                            console.log(role.contain);
+                            console.log(role.contain.concat(cardsAry[key].name));
+                          }}/></td>
                           <td>{card.name}</td>
                         </tr>)
                     }
