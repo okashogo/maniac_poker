@@ -8,10 +8,11 @@ import { titles, roles, cards } from './importFile/testdb';
 
 export default function Create(props: any) {
   console.log("Create_render");
-  const [titleSelectFlag, setTitleSelectFlag] = useState(false);
+
   const [title, setTitle] = useState("");
   const [cardsAry, setCard] = useState([{name: "", img:""}]);
   const [rolesAry, setRoles] = useState([{name: "", contain:["",]}]);
+
   useEffect(()=>{
     collection_title.where('title', '==', props.slectTitle).get().then(snapshot => {
       snapshot.forEach(async doc => {
@@ -23,7 +24,6 @@ export default function Create(props: any) {
       console.log('Error getting documents', err);
     });
   },[props]);
-
 
   const dom = (
     <div>
@@ -44,26 +44,31 @@ export default function Create(props: any) {
           })
       }}>登録</button>
       <h2>
-        タイトル：<input value={title} />
+        タイトル：<input defaultValue={title} />
       </h2>
       <hr />
 
       <h2>
         カードマスタ
+        <input />
     </h2>
       <table className="table table-striped">
         <thead>
           <tr>
-            <td>id</td>
             <td>名前</td>
             <td>画像</td>
+            <td></td>
             <td></td>
           </tr>
         </thead>
         <tbody>
           {cardsAry.map((data, key) => {
             return (<tr key={"card"+key}>
-              <td>{data.name}</td>
+              <td><input defaultValue={data.name} onChange={(e) => {
+                var setCardTmp = cardsAry;
+                setCardTmp[key].name = e.target.value;
+                setCard(setCardTmp)
+              }}/></td>
               <td>{data.img}</td>
               <td>
                 <button className="btn btn-primary">編集</button>
@@ -72,7 +77,7 @@ export default function Create(props: any) {
           })}
           <tr>
             <td><input /></td>
-            <td><input value="なし" /></td>
+            <td><input defaultValue="なし" /></td>
             <td>
               <button className="btn btn-danger">追加</button>
             </td>

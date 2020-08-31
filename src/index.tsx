@@ -439,16 +439,22 @@ function App() {
                     <td></td>
                   </tr>
                 </thead>
-                {titles.map((data,key) => {
-                  return(
-                    <tr>
-                      <td>{data}</td>
-                      <td><button className="btn btn-primary" onClick={()=>{
-                        setSlectTitleFlag(data);
-                      }}>編集</button></td>
-                    </tr>
-                  )
-                })}
+                <tbody>
+                  {titles.map((data,key) => {
+                    return(
+                      <tr>
+                        <td>{data}</td>
+                        <td><button className="btn btn-primary" onClick={()=>{
+                          setSlectTitleFlag(data);
+                        }}>編集</button></td>
+                      </tr>
+                    )
+                  })}
+                  <tr>
+                    <td><input /></td>
+                    <td><button className="btn btn-danger">追加</button></td>
+                  </tr>
+                </tbody>
               </table>
             </div>
           }
