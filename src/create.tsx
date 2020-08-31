@@ -175,10 +175,10 @@ export default function Create(props: any) {
         役マスタ
       </h2>
       <div className="row">
-        {rolesAry.map((role, key) => {
+        {rolesAry.map((role, roleKey) => {
           return (<div className="border border-success" style={{ display: "flex" }} >
-            <div key={"rolename" + key}>{role.name}</div>
-            <div className="col-4" key={"roletable" + key}>
+            <div key={"rolename" + roleKey}>{role.name}</div>
+            <div className="col-4" key={"roletable" + roleKey}>
               <table className="table table-striped">
                 <thead>
                   <tr>
@@ -190,13 +190,11 @@ export default function Create(props: any) {
                   {cardsAry.map((card, key) => {
                     if (role.contain.includes(card.name)) {
                       return (
-                        <tr key={"check" + key}>
+                        <tr key={"role" + roleKey + "check" + key}>
                           <td><input type="checkbox" checked onChange={() => {
-                            var rolesAryTmp = rolesAry;
-                            console.log("change");
-                            role.contain.splice(key, 1);
-                            console.log(role.contain);
-                            rolesAryTmp[key].contain = role.contain;
+                            var rolesAryTmp = rolesAry.concat();
+                            role.contain.splice(role.contain.indexOf(card.name), 1);
+                            rolesAryTmp[roleKey].contain = role.contain;
                             collection_title.where('title', '==', title).get().then(snapshot => {
                                 snapshot.forEach(doc => {
                                   console.log(doc);
@@ -222,12 +220,29 @@ export default function Create(props: any) {
                     }
                     else {
                       return (
-                        <tr key={"check" + key}>
+                        <tr key={"role" + roleKey + "check_" + key}>
                           <td><input type="checkbox" onChange={() => {
-                            console.log(role.name);
-                            console.log(cardsAry[key].name);
-                            console.log(role.contain);
-                            console.log(role.contain.concat(cardsAry[key].name));
+                            var rolesAryTmp = rolesAry.concat();
+                            rolesAryTmp[roleKey].contain = role.contain.concat(card.name);
+                            collection_title.where('title', '==', title).get().then(snapshot => {
+                                snapshot.forEach(doc => {
+                                  console.log(doc);
+                                  collection_title.doc(doc.id)
+                                    .set({
+                                      title: title,
+                                      cards: cards,
+                                      roles: rolesAryTmp,
+                                      updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                    })
+                                    .then(snapshot => {
+                                      console.log(snapshot);
+                                      setNewCardsFlag(true);
+                                    })
+                                    .catch(err => {
+                                      console.log(err);
+                                    });
+                                });
+                            })
                           }}/></td>
                           <td>{card.name}</td>
                         </tr>)
