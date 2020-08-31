@@ -70,7 +70,11 @@ export default function Create(props: any) {
         })
       }}>登録</button>
       <h2>
-        タイトル： {title}
+        タイトル：
+        {title}
+        <input defaultValue={title} onChange={(e) => {
+          setTitle(e.target.value)
+        }}/>
       </h2>
       <hr />
 
@@ -138,7 +142,26 @@ export default function Create(props: any) {
               setNewCard(newCardsAryTmp);
             }} /></td>
             <td>
-              <button className="btn btn-danger">追加</button>
+              <button className="btn btn-danger" onClick={() => {
+                collection_title.where('title', '==', title).get().then(snapshot => {
+                    snapshot.forEach(doc => {
+                      console.log(doc);
+                      collection_title.doc(doc.id)
+                        .set({
+                          title: title,
+                          cards: cardsAry.concat(newCardsAry),
+                          roles: rolesAry,
+                          updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        })
+                        .then(snapshot => {
+                          console.log(snapshot);
+                        })
+                        .catch(err => {
+                          console.log(err);
+                        });
+                    });
+                })
+              }}>追加</button>
             </td>
           </tr>
         </tbody>
