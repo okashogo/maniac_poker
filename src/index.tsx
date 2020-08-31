@@ -10,7 +10,7 @@ import Create from './create';
 import { firebaseConfig } from './firebaseConfig';
 import shuffle from './importFile/shuffle';
 import drawScore from './importFile/drawScore';
-import { titles, roles, cards } from './importFile/testdb';
+import { roles, cards } from './importFile/testdb';
 import drawHand from './importFile/drawHand';
 import calTotal from './importFile/calTotal';
 import bgcChange from './importFile/bgcChange';
@@ -57,6 +57,8 @@ function App() {
   const [select, setSelect] = useState([null]);
   const [scores, setScore]: any[] = useState(Array(Object.keys(cards[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
   const [total, setTotal] = useState(0);
+  const [titles, setTitles] = useState([""]);
+  const [slectTitleFlag, setSlectTitleFlag] = useState("");
 
   // ---------------useEffect from--------------------------
   useEffect(() => {
@@ -209,8 +211,15 @@ function App() {
 
           <div>
             <button className="btn btn-info"
-              onClick={() => {
-                console.log('make_card');
+              onClick={async () => {
+                var titlesTmp:string[] = [];
+                await collection_title.get().then(async snapshot =>{
+                  snapshot.forEach(doc => {
+                    console.log(doc.data().title);
+                    titlesTmp.push(doc.data().title);
+                  })
+                })
+                setTitles(titlesTmp);
                 setIsCreate(true);
                 setStage(-1);
               }}
@@ -419,7 +428,34 @@ function App() {
 
       {isCreate &&
         // ---------------isCreate = true from (create画面)--------------------------
-        <Create />
+        <div>
+          {slectTitleFlag === "" &&
+            <div>
+              <h2>タイトル一覧</h2>
+              <table className="table table-striped">
+                <thead>
+                  <tr>
+                    <td>タイトル</td>
+                    <td></td>
+                  </tr>
+                </thead>
+                {titles.map((data,key) => {
+                  return(
+                    <tr>
+                      <td>{data}</td>
+                      <td><button className="btn btn-primary" onClick={()=>{
+                        setSlectTitleFlag(data);
+                      }}>編集</button></td>
+                    </tr>
+                  )
+                })}
+              </table>
+            </div>
+          }
+          {slectTitleFlag !== "" &&
+            <Create slectTitle={slectTitleFlag}/>
+          }
+        </div>
         // ---------------isCreate = true to (create画面)--------------------------
       }
     </div>

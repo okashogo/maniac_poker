@@ -1,18 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import firebase from "firebase";
-import {collection_title} from "./index";
+import { collection_title } from "./index";
 // import firebase from "firebase";
 
 import { titles, roles, cards } from './importFile/testdb';
 
-export default function Create() {
+export default function Create(props: any) {
   console.log("Create_render");
-  const [title, setTitle] = useState(titles[0].title);
-  const [cardsAry, setCard] = useState(cards);
-  const [rolesAry, setRoles] = useState(roles);
+  const [titleSelectFlag, setTitleSelectFlag] = useState(false);
+  const [title, setTitle] = useState("");
+  const [cardsAry, setCard] = useState([{name: "", img:""}]);
+  const [rolesAry, setRoles] = useState([{name: "", contain:["",]}]);
+  useEffect(()=>{
+    collection_title.where('title', '==', props.slectTitle).get().then(snapshot => {
+      snapshot.forEach(async doc => {
+        setTitle(doc.data().title);
+        setCard(doc.data().cards);
+        setRoles(doc.data().roles);
+      })
+    }).catch(err => {
+      console.log('Error getting documents', err);
+    });
+  },[props]);
 
-  return (
+
+  const dom = (
     <div>
       <h2><b>カード作成画面</b></h2>
       <button className="btn btn-primary" onClick={() => {
@@ -37,8 +50,8 @@ export default function Create() {
 
       <h2>
         カードマスタ
-      </h2>
-      <table>
+    </h2>
+      <table className="table table-striped">
         <thead>
           <tr>
             <td>id</td>
@@ -48,8 +61,8 @@ export default function Create() {
           </tr>
         </thead>
         <tbody>
-          {cardsAry.map((data,key) => {
-            return (<tr key={key}>
+          {cardsAry.map((data, key) => {
+            return (<tr key={"card"+key}>
               <td>{data.name}</td>
               <td>{data.img}</td>
               <td>
@@ -59,7 +72,7 @@ export default function Create() {
           })}
           <tr>
             <td><input /></td>
-            <td><input value="なし"/></td>
+            <td><input value="なし" /></td>
             <td>
               <button className="btn btn-danger">追加</button>
             </td>
@@ -70,51 +83,54 @@ export default function Create() {
 
       <h2>
         役マスタ
-      </h2>
+    </h2>
       <div className="row">
-        {rolesAry.map((role, key) =>{
-            return (<div className="border border-success" style={{ display: "flex" }} >
-              <div key={key}>{role.name}</div>
-              <div className="col-4" key={key}>
-                <table>
-                  <thead>
-                    <tr>
-                      <td></td>
-                      <td>名前</td>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cardsAry.map((card, key) =>{
-                      if(role.contain.includes(card.name)){
-                        return (
-                          <tr key={key}>
-                          <td><input type="checkbox" checked/></td>
+        {rolesAry.map((role, key) => {
+          return (<div className="border border-success" style={{ display: "flex" }} >
+            <div key={"rolename"+key}>{role.name}</div>
+            <div className="col-4" key={"roletable"+key}>
+              <table className="table table-striped">
+                <thead>
+                  <tr>
+                    <td></td>
+                    <td>名前</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cardsAry.map((card, key) => {
+                    if (role.contain.includes(card.name)) {
+                      return (
+                        <tr key={"check"+key}>
+                          <td><input type="checkbox" checked /></td>
                           <td>{card.name}</td>
-                          </tr>)
-                      }
-                      else{
-                        return (
-                          <tr key={key}>
+                        </tr>)
+                    }
+                    else {
+                      return (
+                        <tr key={"check"+key}>
                           <td><input type="checkbox" /></td>
                           <td>{card.name}</td>
-                          </tr>)
-                      }
-                      })}
-                  </tbody>
-                </table>
-                <hr />
-              </div>
-            </div>)
-          })}
-          <div className="border border-success">
-            <div>
-              <input placeholder="新しい役を入力" />
+                        </tr>)
+                    }
+                  })}
+                </tbody>
+              </table>
+              <hr />
             </div>
-            <div>
-              <button className="btn btn-danger">追加</button>
-            </div>
+          </div>)
+        })}
+        <div className="border border-success">
+          <div>
+            <input placeholder="新しい役を入力" />
           </div>
+          <div>
+            <button className="btn btn-danger">追加</button>
+          </div>
+        </div>
       </div>
     </div>
+  )
+  return (
+    dom
   );
 }
