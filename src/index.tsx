@@ -26,6 +26,7 @@ export const auth = firebase.auth();
 export const db = firebase.firestore();
 
 const collection_game = db.collection('game');
+export const collection_title = db.collection('title');
 // gameテーブルに保存するカラム
 // gameID:
 // roomID:
@@ -416,7 +417,7 @@ function App() {
         // ---------------stage = 2 to (ドロー)--------------------------
       }
 
-      {!isCreate &&
+      {isCreate &&
         // ---------------isCreate = true from (create画面)--------------------------
         <Create />
         // ---------------isCreate = true to (create画面)--------------------------
