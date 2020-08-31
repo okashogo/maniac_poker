@@ -15,6 +15,7 @@ export default function Create(props: any) {
 
   const [newCardsAry, setNewCard] = useState({ name: "", img: "" });
   const [newCardsFlag, setNewCardsFlag] = useState(false);
+  const [newRole, setNewRole] = useState("");
 
   useEffect(() => {
     console.log("run useEffect");
@@ -82,69 +83,69 @@ export default function Create(props: any) {
         カードマスタ
       </h2>
       {false &&
-      <table className="table table-striped">
-        <thead>
-          <tr>
-            <td>名前</td>
-            <td>画像</td>
-            <td></td>
-            <td></td>
-          </tr>
-        </thead>
-        <tbody>
-          {cardsAry.map((data, key) => {
-            return (<tr key={"card" + key}>
-              <td><input defaultValue={data.name} onChange={(e) => {
-                var setCardTmp = cardsAry;
-                setCardTmp[key].name = e.target.value;
-                setCard(setCardTmp)
-              }} /></td>
-              <td>{data.img}</td>
-              <td>
-                <button className="btn btn-primary" onClick={() => {
-                  collection_title.where('title', '==', title).get().then(snapshot => {
-                    if (snapshot.empty) {
-                      console.log("error: 同じタイトル名のDBがありません。")
-                      return;
-                    }
-                    else {
-                      snapshot.forEach(doc => {
-                        console.log(doc);
-                        collection_title.doc(doc.id)
-                          .set({
-                            title: title,
-                            cards: cardsAry,
-                            roles: rolesAry,
-                            updateAt: firebase.firestore.FieldValue.serverTimestamp(),
-                          })
-                          .then(snapshot => {
-                            console.log(snapshot);
-                          })
-                          .catch(err => {
-                            console.log(err);
-                          });
+        <table className="table table-striped">
+          <thead>
+            <tr>
+              <td>名前</td>
+              <td>画像</td>
+              <td></td>
+              <td></td>
+            </tr>
+          </thead>
+          <tbody>
+            {cardsAry.map((data, key) => {
+              return (<tr key={"card" + key}>
+                <td><input defaultValue={data.name} onChange={(e) => {
+                  var setCardTmp = cardsAry;
+                  setCardTmp[key].name = e.target.value;
+                  setCard(setCardTmp)
+                }} /></td>
+                <td>{data.img}</td>
+                <td>
+                  <button className="btn btn-primary" onClick={() => {
+                    collection_title.where('title', '==', title).get().then(snapshot => {
+                      if (snapshot.empty) {
+                        console.log("error: 同じタイトル名のDBがありません。")
+                        return;
+                      }
+                      else {
+                        snapshot.forEach(doc => {
+                          console.log(doc);
+                          collection_title.doc(doc.id)
+                            .set({
+                              title: title,
+                              cards: cardsAry,
+                              roles: rolesAry,
+                              updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            })
+                            .then(snapshot => {
+                              console.log(snapshot);
+                            })
+                            .catch(err => {
+                              console.log(err);
+                            });
 
-                      });
-                    }
-                  })
-                }}>編集</button>
-              </td>
-            </tr>)
-          })}
-          <tr>
-            <td><input defaultValue={newCardsAry.name} onChange={(e) => {
-              var newCardsAryTmp = newCardsAry;
-              newCardsAryTmp.name = e.target.value;
-              setNewCard(newCardsAryTmp);
-            }} /></td>
-            <td><input defaultValue={newCardsAry.img} onChange={(e) => {
-              var newCardsAryTmp = newCardsAry;
-              newCardsAryTmp.img = e.target.value;
-              setNewCard(newCardsAryTmp);
-            }} /></td>
-            <td>
-              <button className="btn btn-danger" onClick={() => {
-                collection_title.where('title', '==', title).get().then(snapshot => {
+                        });
+                      }
+                    })
+                  }}>編集</button>
+                </td>
+              </tr>)
+            })}
+            <tr>
+              <td><input defaultValue={newCardsAry.name} onChange={(e) => {
+                var newCardsAryTmp = newCardsAry;
+                newCardsAryTmp.name = e.target.value;
+                setNewCard(newCardsAryTmp);
+              }} /></td>
+              <td><input defaultValue={newCardsAry.img} onChange={(e) => {
+                var newCardsAryTmp = newCardsAry;
+                newCardsAryTmp.img = e.target.value;
+                setNewCard(newCardsAryTmp);
+              }} /></td>
+              <td>
+                <button className="btn btn-danger" onClick={() => {
+                  collection_title.where('title', '==', title).get().then(snapshot => {
                     snapshot.forEach(doc => {
                       console.log(doc);
                       collection_title.doc(doc.id)
@@ -162,18 +163,54 @@ export default function Create(props: any) {
                           console.log(err);
                         });
                     });
-                })
-              }}>追加</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    }
+                  })
+                }}>追加</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      }
       <hr />
 
       <h2>
         役マスタ
       </h2>
+      <div>
+        <input placeholder="新しい役を入力" defaultValue="" onChange={(e) => {
+          setNewRole(e.target.value);
+        }} />
+      </div>
+      <div>
+        <button className="btn btn-danger" onClick={() => {
+          console.log('roles add');
+          if(newRole !== ""){
+            var rolesAryTmp = rolesAry.concat();
+            console.log(newRole);
+            rolesAryTmp.push({name: newRole, contain: []});
+            console.log(rolesAryTmp);
+            collection_title.where('title', '==', title).get().then(snapshot => {
+              snapshot.forEach(doc => {
+                console.log(doc);
+                collection_title.doc(doc.id)
+                  .set({
+                    title: title,
+                    cards: cards,
+                    roles: rolesAryTmp,
+                    updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  })
+                  .then(snapshot => {
+                    console.log(snapshot);
+                    setNewCardsFlag(true);
+                    setNewRole("");
+                  })
+                  .catch(err => {
+                    console.log(err);
+                  });
+              });
+            })
+          }
+        }}>追加</button>
+      </div>
       <div className="row">
         {rolesAry.map((role, roleKey) => {
           return (<div className="border border-success" style={{ display: "flex" }} >
@@ -196,25 +233,25 @@ export default function Create(props: any) {
                             role.contain.splice(role.contain.indexOf(card.name), 1);
                             rolesAryTmp[roleKey].contain = role.contain;
                             collection_title.where('title', '==', title).get().then(snapshot => {
-                                snapshot.forEach(doc => {
-                                  console.log(doc);
-                                  collection_title.doc(doc.id)
-                                    .set({
-                                      title: title,
-                                      cards: cards,
-                                      roles: rolesAryTmp,
-                                      updateAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                    })
-                                    .then(snapshot => {
-                                      console.log(snapshot);
-                                      setNewCardsFlag(true);
-                                    })
-                                    .catch(err => {
-                                      console.log(err);
-                                    });
-                                });
+                              snapshot.forEach(doc => {
+                                console.log(doc);
+                                collection_title.doc(doc.id)
+                                  .set({
+                                    title: title,
+                                    cards: cards,
+                                    roles: rolesAryTmp,
+                                    updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                  })
+                                  .then(snapshot => {
+                                    console.log(snapshot);
+                                    setNewCardsFlag(true);
+                                  })
+                                  .catch(err => {
+                                    console.log(err);
+                                  });
+                              });
                             })
-                          }}/></td>
+                          }} /></td>
                           <td>{card.name}</td>
                         </tr>)
                     }
@@ -225,25 +262,25 @@ export default function Create(props: any) {
                             var rolesAryTmp = rolesAry.concat();
                             rolesAryTmp[roleKey].contain = role.contain.concat(card.name);
                             collection_title.where('title', '==', title).get().then(snapshot => {
-                                snapshot.forEach(doc => {
-                                  console.log(doc);
-                                  collection_title.doc(doc.id)
-                                    .set({
-                                      title: title,
-                                      cards: cards,
-                                      roles: rolesAryTmp,
-                                      updateAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                    })
-                                    .then(snapshot => {
-                                      console.log(snapshot);
-                                      setNewCardsFlag(true);
-                                    })
-                                    .catch(err => {
-                                      console.log(err);
-                                    });
-                                });
+                              snapshot.forEach(doc => {
+                                console.log(doc);
+                                collection_title.doc(doc.id)
+                                  .set({
+                                    title: title,
+                                    cards: cards,
+                                    roles: rolesAryTmp,
+                                    updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                  })
+                                  .then(snapshot => {
+                                    console.log(snapshot);
+                                    setNewCardsFlag(true);
+                                  })
+                                  .catch(err => {
+                                    console.log(err);
+                                  });
+                              });
                             })
-                          }}/></td>
+                          }} /></td>
                           <td>{card.name}</td>
                         </tr>)
                     }
@@ -254,14 +291,6 @@ export default function Create(props: any) {
             </div>
           </div>)
         })}
-        <div className="border border-success">
-          <div>
-            <input placeholder="新しい役を入力" />
-          </div>
-          <div>
-            <button className="btn btn-danger">追加</button>
-          </div>
-        </div>
       </div>
     </div>
   )
