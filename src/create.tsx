@@ -129,6 +129,47 @@ export default function Create(props: any) {
                     })
                   }}>編集</button>
                 </td>
+                <td>
+                  <button className="btn btn-danger" onClick={() => {
+                    console.log(key);
+                    console.log(cardsAry[key]);
+                    console.log(cardsAry[key].name);
+                    var rolesAryTmp = rolesAry;
+                    rolesAry.forEach((role,roleKey)  =>
+                      role.contain.forEach((contain, containKey) => {
+                        if(contain == cardsAry[key].name){
+                          rolesAryTmp[roleKey].contain.splice(containKey, 1);
+                          // console.log(rolesAryTmp[roleKey].contain);
+                        }
+                      })
+                    );
+                    var cardsAryTmp = cardsAry;
+                    cardsAryTmp.splice(key, 1);
+                    // console.log(cardsAry);
+
+                    collection_title.where('title', '==', title).get().then(snapshot => {
+                        snapshot.forEach(doc => {
+                          console.log(doc);
+                          collection_title.doc(doc.id)
+                            .set({
+                              title: title,
+                              cards: cardsAryTmp,
+                              roles: rolesAryTmp,
+                              updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            })
+                            .then(snapshot => {
+                              console.log(snapshot);
+                              setNewCardsFlag(true);
+                            })
+                            .catch(err => {
+                              console.log(err);
+                            });
+
+                        });
+                    })
+
+                  }}>削除</button>
+                </td>
               </tr>)
             })}
             <tr>
@@ -165,6 +206,7 @@ export default function Create(props: any) {
                   })
                 }}>追加</button>
               </td>
+              <td></td>
             </tr>
           </tbody>
         </table>
