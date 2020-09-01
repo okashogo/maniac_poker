@@ -468,7 +468,7 @@ function App() {
                     <td><input onChange={(e) =>
                       setNewTitle(e.target.value)
                     }/></td>
-                    <td><button className="btn btn-danger" onClick={()=>{
+                    <td><button className="btn btn-success" onClick={()=>{
                       collection_title.add({
                         title: newTitle,
                         cards: [{ name: "", img: "" }],

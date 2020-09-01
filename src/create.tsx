@@ -144,7 +144,7 @@ export default function Create(props: any) {
                 setNewCard(newCardsAryTmp);
               }} /></td>
               <td>
-                <button className="btn btn-danger" onClick={() => {
+                <button className="btn btn-success" onClick={() => {
                   collection_title.where('title', '==', title).get().then(snapshot => {
                     snapshot.forEach(doc => {
                       console.log(doc);
@@ -181,7 +181,7 @@ export default function Create(props: any) {
         }} />
       </div>
       <div>
-        <button className="btn btn-danger" onClick={() => {
+        <button className="btn btn-success" onClick={() => {
           console.log('roles add');
           if(newRole !== ""){
             var rolesAryTmp = rolesAry.concat();
@@ -214,7 +214,31 @@ export default function Create(props: any) {
       <div className="row">
         {rolesAry.map((role, roleKey) => {
           return (<div className="border border-success" style={{ display: "flex" }} >
-            <div key={"rolename" + roleKey}>{role.name}</div>
+            <div key={"rolename" + roleKey}>
+              <div>{role.name}</div>
+              <button className="btn btn-danger" onClick={()=>{
+                rolesAry.splice(roleKey, 1);
+                collection_title.where('title', '==', title).get().then(snapshot => {
+                  snapshot.forEach(doc => {
+                    console.log(doc);
+                    collection_title.doc(doc.id)
+                      .set({
+                        title: title,
+                        cards: cards,
+                        roles: rolesAry,
+                        updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                      })
+                      .then(snapshot => {
+                        console.log(snapshot);
+                        setNewCardsFlag(true);
+                      })
+                      .catch(err => {
+                        console.log(err);
+                      });
+                  });
+                })
+              }}>削除</button>
+            </div>
             <div className="col-4" key={"roletable" + roleKey}>
               <table className="table table-striped">
                 <thead>
