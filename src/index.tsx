@@ -60,6 +60,9 @@ function App() {
   const [titles, setTitles] = useState([""]);
   const [slectTitleFlag, setSlectTitleFlag] = useState("");
 
+  const [crateFlag, setCrateFlag] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+
   // ---------------useEffect from--------------------------
   useEffect(() => {
 		if(gameID){
@@ -86,7 +89,18 @@ function App() {
 				});
 			});
 		}
-	},[gameID]);
+    if(crateFlag){
+      collection_title.onSnapshot(async snapshot => {
+        var titleList:string[] = [];
+        snapshot.docChanges().forEach(async change => {
+          const data = change.doc.data();
+          titleList.push(data.title);
+        });
+        setTitles(titleList);
+      });
+      setCrateFlag(false);
+    }
+	},[gameID,crateFlag]);
 
   // ---------------useEffect to--------------------------
 
@@ -451,8 +465,24 @@ function App() {
                     )
                   })}
                   <tr>
-                    <td><input /></td>
-                    <td><button className="btn btn-danger">追加</button></td>
+                    <td><input onChange={(e) =>
+                      setNewTitle(e.target.value)
+                    }/></td>
+                    <td><button className="btn btn-danger" onClick={()=>{
+                      collection_title.add({
+                        title: newTitle,
+                        cards: [{ name: "", img: "" }],
+                        roles: [{ name: "", contain: ["",] }],
+                        updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+                      })
+                        .then(doc => {
+                          console.log("doc = " + doc);
+                          setCrateFlag(true);
+                        })
+                        .catch(error => {
+                          console.log("error = " + error);
+                        })
+                    }}>追加</button></td>
                   </tr>
                 </tbody>
               </table>
