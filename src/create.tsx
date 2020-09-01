@@ -82,7 +82,6 @@ export default function Create(props: any) {
       <h2>
         カードマスタ
       </h2>
-      {false &&
         <table className="table table-striped">
           <thead>
             <tr>
@@ -169,7 +168,6 @@ export default function Create(props: any) {
             </tr>
           </tbody>
         </table>
-      }
       <hr />
 
       <h2>
@@ -194,7 +192,7 @@ export default function Create(props: any) {
                 collection_title.doc(doc.id)
                   .set({
                     title: title,
-                    cards: cards,
+                    cards: cardsAry,
                     roles: rolesAryTmp,
                     updateAt: firebase.firestore.FieldValue.serverTimestamp(),
                   })
@@ -224,7 +222,7 @@ export default function Create(props: any) {
                     collection_title.doc(doc.id)
                       .set({
                         title: title,
-                        cards: cards,
+                        cards: cardsAry,
                         roles: rolesAry,
                         updateAt: firebase.firestore.FieldValue.serverTimestamp(),
                       })
@@ -291,7 +289,7 @@ export default function Create(props: any) {
                                 collection_title.doc(doc.id)
                                   .set({
                                     title: title,
-                                    cards: cards,
+                                    cards: cardsAry,
                                     roles: rolesAryTmp,
                                     updateAt: firebase.firestore.FieldValue.serverTimestamp(),
                                   })
