@@ -55,6 +55,7 @@ function App() {
   const [parent, setParent] = useState(false);
   const [hands, sethand] = useState([{ name: "", img: "", element1: "", element2: "" }]);
   const [select, setSelect] = useState([null]);
+  const [nowTitle, setNowTitle] = useState("");
   const [scores, setScore]: any[] = useState(Array(Object.keys(cards[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
   const [total, setTotal] = useState(0);
   const [titles, setTitles] = useState([""]);
@@ -90,6 +91,16 @@ function App() {
 		}
 	},[gameID]);
 
+  useEffect(() => {
+    var titlesTmp:string[] = [];
+    collection_title.get().then(snapshot =>{
+      snapshot.forEach(doc => {
+        titlesTmp.push(doc.data().title);
+      })
+      setTitles(titlesTmp);
+    })
+	},[]);
+
   // ---------------useEffect to--------------------------
 
   const onClickMakeRoom = () => {
@@ -98,32 +109,43 @@ function App() {
     setGameID(randomGameID);
     var randomMyID = randomChar();
 
-    // 初期設定
-    var cardsFirst: any[] = [];
-    for (let i = 0; i < cards.length; i++) {
-      cardsFirst[i] = {
-        img: cards[i].img,
-        name: cards[i].name,
-      };
+    if(nowTitle == ""){
+      alert("タイトルを選択してください。");
+      return;
     }
-    cardsFirst = shuffle(cardsFirst);
-    // 初期設定終了
-    var handFirst = cardsFirst.slice(0, 5);
-    var deckFirst = cardsFirst.slice(5);
-    sethand(handFirst);
 
-    // DBにaddする
-    collection_game.add({
-      gameID: randomGameID,
-      roomID: roomID,
-      userNameList: [myname,],
-      userIDList: [randomMyID,],
-      decks: deckFirst,
-      readListFlag: [],
-      stage: 1,
-      scores: [],
-      updateAt: firebase.firestore.FieldValue.serverTimestamp(),
-    })
+    var cardsTmp:any[];
+    collection_title.where('title', '==', nowTitle).get()
+    .then(snapshot => {
+      snapshot.forEach(async doc => {
+        cardsTmp = doc.data().cards;
+      })
+      // 初期設定
+      var cardsFirst: any[] = [];
+      for (let i = 0; i < cardsTmp.length; i++) {
+        cardsFirst[i] = {
+          img: cards[i].img,
+          name: cards[i].name,
+        };
+      }
+      cardsFirst = shuffle(cardsFirst);
+      // 初期設定終了
+      var handFirst = cardsFirst.slice(0, 5);
+      var deckFirst = cardsFirst.slice(5);
+      sethand(handFirst);
+
+      // DBにaddする
+      collection_game.add({
+        gameID: randomGameID,
+        roomID: roomID,
+        userNameList: [myname,],
+        userIDList: [randomMyID,],
+        decks: deckFirst,
+        readListFlag: [],
+        stage: 1,
+        scores: [],
+        updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+      })
       .then(doc => {
         console.log("doc = " + doc);
         setParent(true);
@@ -132,6 +154,11 @@ function App() {
       .catch(error => {
         console.log("error = " + error);
       })
+    }).catch(err => {
+      console.log('Error getting documents', err);
+    });
+
+
   }
 
   const onClickApplyRoom = () => {
@@ -329,6 +356,10 @@ function App() {
         console.log("error = " + error);
       })
   }
+
+  const onChangeSelectbox = (title:string) => {
+    setNowTitle(title);
+  }
   // ---------------render from--------------------------
   const element = (
     <div className="container-fluid">
@@ -339,6 +370,14 @@ function App() {
             onChange={(e) =>
               setMyname(e.target.value)
             } />
+          </div>
+
+          <div>
+            <select onChange={(e) => onChangeSelectbox(e.target.value)}>
+              {titles.map((data) => {
+                return <option value={data}>{data}</option>
+              })}
+            </select>
           </div>
 
           <div>部屋を作る：<input placeholder="半角数字を入力"
