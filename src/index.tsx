@@ -6,7 +6,7 @@ import * as serviceWorker from './serviceWorker';
 import "firebase/auth";
 import firebase from "firebase";
 
-import Create from './create';
+import TitleIndex from './title_index';
 import { firebaseConfig } from './firebaseConfig';
 import shuffle from './importFile/shuffle';
 import drawScore from './importFile/drawScore';
@@ -42,14 +42,14 @@ function Img(props: any) {
 }
 
 function App() {
-	console.log('render');
+  console.log('render');
   const [gameID, setGameID] = useState("");
   const [myname, setMyname] = useState("");
   const [userNameList, setUserNameList] = useState([]);
   const [roomID, setRoomID] = useState(0);
   const [applyID, setApplyID] = useState(0);
   const [stage, setStage] = useState(0);
-  const [isCreate, setIsCreate] = useState(false);
+  const [isTitleIndex, setIsTitleIndex] = useState(false);
   const [parent, setParent] = useState(false);
   const [hands, sethand] = useState([{ name: "", img: "", element1: "", element2: "" }]);
   const [select, setSelect] = useState([null]);
@@ -57,47 +57,44 @@ function App() {
   const [scores, setScore]: any[] = useState([{ pairName: "", pairsCount: 0 }]);
   const [total, setTotal] = useState(0);
   const [titles, setTitles] = useState([""]);
-  const [slectTitleFlag, setSlectTitleFlag] = useState("");
-
-  const [newTitle, setNewTitle] = useState("");
 
   // ---------------useEffect from--------------------------
   useEffect(() => {
-		if(gameID){
+    if (gameID) {
       collection_game.where('gameID', '==', gameID).onSnapshot(async snapshot => {
         snapshot.docChanges().forEach(async change => {
-					const data = change.doc.data();
-					if(change.doc.data().gameID === gameID){
-						setStage(data.stage);
-						if(data.stage === 1){
-							setUserNameList(data.userNameList)
-						} else if(data.stage === 3){
-							setTimeout(() => {
-								if(data.winner === myname){
-									alert("あなたの勝ちです。");
-								}
-								else if(data.winner === "draw"){
-									alert("引き分けです。");
-								} else{
-									alert("あなたの負けです。");
-								}
-							},1000);
-						}
-					}
-				});
-			});
-		}
-	},[gameID]);
+          const data = change.doc.data();
+          if (change.doc.data().gameID === gameID) {
+            setStage(data.stage);
+            if (data.stage === 1) {
+              setUserNameList(data.userNameList)
+            } else if (data.stage === 3) {
+              setTimeout(() => {
+                if (data.winner === myname) {
+                  alert("あなたの勝ちです。");
+                }
+                else if (data.winner === "draw") {
+                  alert("引き分けです。");
+                } else {
+                  alert("あなたの負けです。");
+                }
+              }, 1000);
+            }
+          }
+        });
+      });
+    }
+  }, [gameID]);
 
   useEffect(() => {
-    var titlesTmp:string[] = [];
-    collection_title.get().then(snapshot =>{
+    var titlesTmp: string[] = [];
+    collection_title.get().then(snapshot => {
       snapshot.forEach(doc => {
         titlesTmp.push(doc.data().title);
       })
       setTitles(titlesTmp);
     })
-	},[]);
+  }, []);
 
   // ---------------useEffect to--------------------------
 
@@ -107,55 +104,55 @@ function App() {
     setGameID(randomGameID);
     var randomMyID = randomChar();
 
-    if(nowTitle == ""){
+    if (nowTitle == "") {
       alert("タイトルを選択してください。");
       return;
     }
 
-    var cardsTmp:any[];
+    var cardsTmp: any[];
     collection_title.where('title', '==', nowTitle).get()
-    .then(snapshot => {
-      snapshot.forEach(async doc => {
-        cardsTmp = doc.data().cards;
-        console.log(cardsTmp);
-      })
-      // 初期設定
-      var cardsFirst: any[] = [];
-      for (let i = 0; i < cardsTmp.length; i++) {
-        cardsFirst[i] = {
-          img: cardsTmp[i].img,
-          name: cardsTmp[i].name,
-        };
-      }
-      cardsFirst = shuffle(cardsFirst);
-      // 初期設定終了
-      var handFirst = cardsFirst.slice(0, 5);
-      var deckFirst = cardsFirst.slice(5);
-      sethand(handFirst);
+      .then(snapshot => {
+        snapshot.forEach(async doc => {
+          cardsTmp = doc.data().cards;
+          console.log(cardsTmp);
+        })
+        // 初期設定
+        var cardsFirst: any[] = [];
+        for (let i = 0; i < cardsTmp.length; i++) {
+          cardsFirst[i] = {
+            img: cardsTmp[i].img,
+            name: cardsTmp[i].name,
+          };
+        }
+        cardsFirst = shuffle(cardsFirst);
+        // 初期設定終了
+        var handFirst = cardsFirst.slice(0, 5);
+        var deckFirst = cardsFirst.slice(5);
+        sethand(handFirst);
 
-      // DBにaddする
-      collection_game.add({
-        gameID: randomGameID,
-        roomID: roomID,
-        userNameList: [myname,],
-        userIDList: [randomMyID,],
-        decks: deckFirst,
-        readListFlag: [],
-        stage: 1,
-        scores: [],
-        updateAt: firebase.firestore.FieldValue.serverTimestamp(),
-      })
-      .then(doc => {
-        console.log("doc = " + doc);
-        setParent(true);
-        setStage(1);
-      })
-      .catch(error => {
-        console.log("error = " + error);
-      })
-    }).catch(err => {
-      console.log('Error getting documents', err);
-    });
+        // DBにaddする
+        collection_game.add({
+          gameID: randomGameID,
+          roomID: roomID,
+          userNameList: [myname,],
+          userIDList: [randomMyID,],
+          decks: deckFirst,
+          readListFlag: [],
+          stage: 1,
+          scores: [],
+          updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+        })
+          .then(doc => {
+            console.log("doc = " + doc);
+            setParent(true);
+            setStage(1);
+          })
+          .catch(error => {
+            console.log("error = " + error);
+          })
+      }).catch(err => {
+        console.log('Error getting documents', err);
+      });
 
 
   }
@@ -208,15 +205,15 @@ function App() {
   }
 
   const onClickToMakeCard = async () => {
-    var titlesTmp:string[] = [];
-    await collection_title.get().then(async snapshot =>{
+    var titlesTmp: string[] = [];
+    await collection_title.get().then(async snapshot => {
       snapshot.forEach(doc => {
         console.log(doc.data().title);
         titlesTmp.push(doc.data().title);
       })
     })
     setTitles(titlesTmp);
-    setIsCreate(true);
+    setIsTitleIndex(true);
     setStage(-1);
   }
 
@@ -256,7 +253,7 @@ function App() {
       });
   }
 
-  const onClickSetSelect = (key:number) => {
+  const onClickSetSelect = (key: number) => {
     let newSetSelect: any[] = select.concat();
     if (!newSetSelect.includes(key)) {
       newSetSelect.push(key);
@@ -283,67 +280,67 @@ function App() {
           var outputHnand = drawHand(decksTmp, hands, select);
           sethand(outputHnand);
 
-          var rolesTmp:any[];
+          var rolesTmp: any[];
           collection_title.where('title', '==', nowTitle).get()
-          .then(snapshot => {
-            snapshot.forEach(async doc_title => {
-              rolesTmp = doc_title.data().roles;
+            .then(snapshot => {
+              snapshot.forEach(async doc_title => {
+                rolesTmp = doc_title.data().roles;
 
-              var outputScores = drawScore(outputHnand, rolesTmp);
-              setScore(outputScores);
-              var myScoreTmp = calTotal(outputScores);
-              setTotal(myScoreTmp);
-              setSelect([null]);
-              setStage(3);
-
-              var concatScores = doc.data().scores.concat({ name: myname, score: myScoreTmp });
-
-              var winner: string = "nobody";
-              var upStage: number = 0;
-
-              // 最後の人だった場合
-              if (concatScores.length === doc.data().userNameList.length) {
-                console.log("finish");
-                // 対戦相手が複数の場合
-                let getScores: number[] = [];
-                for (let i = 0; i < concatScores.length; i++) {
-                  getScores.push(concatScores[i].score);
-                }
-                //Todo: 引き分けの判定をする。
-                var winnerNumber = getScores.indexOf(Math.max.apply(null, getScores));
-                winner = concatScores[winnerNumber].name;
-                console.log(winner + "さんの勝利");
+                var outputScores = drawScore(outputHnand, rolesTmp);
+                setScore(outputScores);
+                var myScoreTmp = calTotal(outputScores);
+                setTotal(myScoreTmp);
+                setSelect([null]);
                 setStage(3);
 
-                upStage = 1;
-              }
+                var concatScores = doc.data().scores.concat({ name: myname, score: myScoreTmp });
 
-              collection_game.doc(doc.id)
-              .set({
-                gameID: doc.data().gameID,
-                roomID: doc.data().roomID,
-                userNameList: doc.data().userNameList,
-                userIDList: doc.data().userIDList,
-                readListFlag: doc.data().readListFlag,
-                decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
-                stage: 2 + upStage,
-                scores: concatScores,
-                winner: winner,
-              })
-              .then(snapshot => {
-                console.log("snapshot = " + snapshot);
-              })
-              .catch(err => {
-                console.log("err = " + err);
+                var winner: string = "nobody";
+                var upStage: number = 0;
+
+                // 最後の人だった場合
+                if (concatScores.length === doc.data().userNameList.length) {
+                  console.log("finish");
+                  // 対戦相手が複数の場合
+                  let getScores: number[] = [];
+                  for (let i = 0; i < concatScores.length; i++) {
+                    getScores.push(concatScores[i].score);
+                  }
+                  //Todo: 引き分けの判定をする。
+                  var winnerNumber = getScores.indexOf(Math.max.apply(null, getScores));
+                  winner = concatScores[winnerNumber].name;
+                  console.log(winner + "さんの勝利");
+                  setStage(3);
+
+                  upStage = 1;
+                }
+
+                collection_game.doc(doc.id)
+                  .set({
+                    gameID: doc.data().gameID,
+                    roomID: doc.data().roomID,
+                    userNameList: doc.data().userNameList,
+                    userIDList: doc.data().userIDList,
+                    readListFlag: doc.data().readListFlag,
+                    decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
+                    stage: 2 + upStage,
+                    scores: concatScores,
+                    winner: winner,
+                  })
+                  .then(snapshot => {
+                    console.log("snapshot = " + snapshot);
+                  })
+                  .catch(err => {
+                    console.log("err = " + err);
+                  });
+
+
+
               });
-
-
-
-            });
             })
-          .catch(err => {
-            console.log('Error getting documents', err);
-          });
+            .catch(err => {
+              console.log('Error getting documents', err);
+            });
         })
 
       })
@@ -352,23 +349,7 @@ function App() {
       });
   }
 
-  const onClickMakeNewtitle = () => {
-    collection_title.add({
-      title: newTitle,
-      cards: [{ name: "", img: "" }],
-      roles: [{ name: "", contain: ["",] }],
-      updateAt: firebase.firestore.FieldValue.serverTimestamp(),
-    })
-      .then(doc => {
-        console.log("doc = " + doc);
-        setTitles(titles.concat(newTitle));
-      })
-      .catch(error => {
-        console.log("error = " + error);
-      })
-  }
-
-  const onChangeSelectbox = (title:string) => {
+  const onChangeSelectbox = (title: string) => {
     setNowTitle(title);
   }
   // ---------------render from--------------------------
@@ -498,45 +479,12 @@ function App() {
         // ---------------stage = 2 to (ドロー)--------------------------
       }
 
-      {isCreate &&
-        // ---------------isCreate = true from (create画面)--------------------------
+      {isTitleIndex &&
+        // ---------------isTitleIndex = true from (create画面)--------------------------
         <div>
-          {slectTitleFlag === "" &&
-            <div>
-              <h2>タイトル一覧</h2>
-              <table className="table table-striped">
-                <thead>
-                  <tr>
-                    <td>タイトル</td>
-                    <td></td>
-                  </tr>
-                </thead>
-                <tbody>
-                  {titles.map((data,key) => {
-                    return(
-                      <tr>
-                        <td>{data}</td>
-                        <td><button className="btn btn-primary" onClick={()=>{
-                          setSlectTitleFlag(data);
-                        }}>編集</button></td>
-                      </tr>
-                    )
-                  })}
-                  <tr>
-                    <td><input onChange={(e) =>
-                      setNewTitle(e.target.value)
-                    }/></td>
-                    <td><button className="btn btn-success" onClick={onClickMakeNewtitle}>追加</button></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          }
-          {slectTitleFlag !== "" &&
-            <Create slectTitle={slectTitleFlag}/>
-          }
+          <TitleIndex />
         </div>
-        // ---------------isCreate = true to (create画面)--------------------------
+        // ---------------isTitleIndex = true to (create画面)--------------------------
       }
     </div>
   );
