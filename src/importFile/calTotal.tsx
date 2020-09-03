@@ -1,20 +1,20 @@
 export default function calTotal(scores: any[]) {
   var total: number = 0;
   for (let i = 0; i < scores.length; i++) {
-    if (scores[i].pairName === "ファイブカード x ") {
-      total += scores[i].pairsCount * 10;
+    if (scores[i].pairsCount === 5) {
+      total += 10;
       continue;
     }
-    else if (scores[i].pairName === "フォアカード x ") {
-      total += scores[i].pairsCount * 5;
+    else if (scores[i].pairsCount === 4) {
+      total += 5;
       continue;
     }
-    else if (scores[i].pairName === "スリーカード x ") {
-      total += scores[i].pairsCount * 3;
+    else if (scores[i].pairsCount === 3) {
+      total += 3;
       continue;
     }
-    else if (scores[i].pairName === "ペア x ") {
-      total += scores[i].pairsCount * 1;
+    else if (scores[i].pairsCount === 2) {
+      total += 1;
       continue;
     }
   }
