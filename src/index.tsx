@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
@@ -10,13 +10,11 @@ import Create from './create';
 import { firebaseConfig } from './firebaseConfig';
 import shuffle from './importFile/shuffle';
 import drawScore from './importFile/drawScore';
-import { roles, cards } from './importFile/testdb';
 import drawHand from './importFile/drawHand';
 import calTotal from './importFile/calTotal';
 import bgcChange from './importFile/bgcChange';
 import randomChar from './importFile/randomChar';
 import changePairname from './importFile/changePairname';
-// import drawDeck from './importFile/drawDeck';
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -56,7 +54,7 @@ function App() {
   const [hands, sethand] = useState([{ name: "", img: "", element1: "", element2: "" }]);
   const [select, setSelect] = useState([null]);
   const [nowTitle, setNowTitle] = useState("");
-  const [scores, setScore]: any[] = useState(Array(Object.keys(cards[0]).length - 2).fill({ pairName: "", pairsCount: 0 }));
+  const [scores, setScore]: any[] = useState([{ pairName: "", pairsCount: 0 }]);
   const [total, setTotal] = useState(0);
   const [titles, setTitles] = useState([""]);
   const [slectTitleFlag, setSlectTitleFlag] = useState("");
