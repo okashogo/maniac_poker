@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import firebase from "firebase";
+import React, { useState } from 'react';
 import { collection_game, collection_title } from "./index";
 import Img from "./index";
 import drawScore from './importFile/drawScore';

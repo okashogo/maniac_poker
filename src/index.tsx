@@ -10,12 +10,7 @@ import TitleIndex from './title_index';
 import Battle from './battle';
 import { firebaseConfig } from './firebaseConfig';
 import shuffle from './importFile/shuffle';
-import drawScore from './importFile/drawScore';
-import drawHand from './importFile/drawHand';
-import calTotal from './importFile/calTotal';
-import bgcChange from './importFile/bgcChange';
 import randomChar from './importFile/randomChar';
-import changePairname from './importFile/changePairname';
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);

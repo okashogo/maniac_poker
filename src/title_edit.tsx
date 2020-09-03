@@ -7,12 +7,14 @@ export default function TitleEdit(props: any) {
   console.log("title_edit_render");
 
   const [title, setTitle] = useState("");
-  const [cards, setCard] = useState([{ name: "", img: "" }]);
+  const [cards, setCards] = useState([{ name: "", img: "" }]);
   const [roles, setRoles] = useState([{ name: "", contain: ["",] }]);
 
-  const [newCardsAry, setNewCard] = useState({ name: "", img: "" });
+  const [newCard, setNewCard] = useState({ name: "", img: "" });
   const [createFlag, setCreateFlag] = useState(false);
   const [newRole, setNewRole] = useState("");
+
+  //ここで、cardsの配列が変更されたかを確認しています。
   console.log(cards);
 
   useEffect(() => {
@@ -20,7 +22,7 @@ export default function TitleEdit(props: any) {
     collection_title.where('title', '==', props.slectTitle).get().then(snapshot => {
       snapshot.forEach(async doc => {
         setTitle(doc.data().title);
-        setCard(doc.data().cards);
+        setCards(doc.data().cards);
         setRoles(doc.data().roles);
       })
     }).catch(err => {
@@ -139,15 +141,19 @@ export default function TitleEdit(props: any) {
         collection_title.doc(doc.id)
           .set({
             title: title,
-            cards: cards.concat(newCardsAry),
+            cards: cards.concat(newCard),
             roles: roles,
             updateAt: firebase.firestore.FieldValue.serverTimestamp(),
           })
           .then(snapshot => {
             console.log(snapshot);
             var cardsTmp = cards.concat();
-            setCard(cardsTmp.concat(newCardsAry));
+            setCards(cardsTmp.concat(newCard));
+
+            // ↓ このコメントアウトを消すと、useEffect内で setCards され正常に動きます。
             // setCreateFlag(true);
+
+            //しかし、useEffect内で setCards をすると、firebaseの処理を挟んでしまい遅くなるので、ここでは setCards だけをしたいです。
           })
           .catch(err => {
             console.log(err);
@@ -278,12 +284,28 @@ export default function TitleEdit(props: any) {
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td><input key="newCardInput" defaultValue={newCard.name} onChange={(e) => {
+              var newCardTmp = newCard;
+              newCardTmp.name = e.target.value;
+              setNewCard(newCardTmp);
+            }} /></td>
+            <td><input defaultValue={newCard.img} placeholder="本番はここはinputでない" onChange={(e) => {
+              var newCardTmp = newCard;
+              newCardTmp.img = e.target.value;
+              setNewCard(newCardTmp);
+            }} /></td>
+            <td>
+              <button className="btn btn-success" onClick={onClickCardsInsert}>追加</button>
+            </td>
+            <td></td>
+          </tr>
           {cards.map((data, key) => {
             return (<tr key={"card" + key}>
               <td><input defaultValue={data.name} onChange={(e) => {
-                var setCardTmp = cards;
-                setCardTmp[key].name = e.target.value;
-                setCard(setCardTmp);
+                var setCardsTmp = cards;
+                setCardsTmp[key].name = e.target.value;
+                setCards(setCardsTmp);
               }} /></td>
               <td>{data.img}</td>
               <td>
@@ -294,22 +316,6 @@ export default function TitleEdit(props: any) {
               </td>
             </tr>)
           })}
-          <tr>
-            <td><input key="newCardInput" defaultValue={newCardsAry.name} onChange={(e) => {
-              var newCardsAryTmp = newCardsAry;
-              newCardsAryTmp.name = e.target.value;
-              setNewCard(newCardsAryTmp);
-            }} /></td>
-            <td><input defaultValue={newCardsAry.img} onChange={(e) => {
-              var newCardsAryTmp = newCardsAry;
-              newCardsAryTmp.img = e.target.value;
-              setNewCard(newCardsAryTmp);
-            }} /></td>
-            <td>
-              <button className="btn btn-success" onClick={onClickCardsInsert}>追加</button>
-            </td>
-            <td></td>
-          </tr>
         </tbody>
       </table>
       <hr />
