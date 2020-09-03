@@ -285,57 +285,69 @@ function App() {
           var outputHnand = drawHand(decksTmp, hands, select);
           sethand(outputHnand);
 
-          var outputScores = drawScore(outputHnand);
-          setScore(outputScores);
-          var myScoreTmp = calTotal(outputScores);
-          setTotal(myScoreTmp);
-          setSelect([null]);
-          setStage(3);
+          var rolesTmp:any[];
+          collection_title.where('title', '==', nowTitle).get()
+          .then(snapshot => {
+            snapshot.forEach(async doc_title => {
+              rolesTmp = doc_title.data().roles;
 
-          var concatScores = doc.data().scores.concat({ name: myname, score: myScoreTmp });
+              var outputScores = drawScore(outputHnand, rolesTmp);
+              setScore(outputScores);
+              var myScoreTmp = calTotal(outputScores);
+              setTotal(myScoreTmp);
+              setSelect([null]);
+              setStage(3);
 
-          var winner: string = "nobody";
-          var upStage: number = 0;
+              var concatScores = doc.data().scores.concat({ name: myname, score: myScoreTmp });
 
-          // 最後の人だった場合
-          if (concatScores.length === doc.data().userNameList.length) {
-            console.log("finish");
-            // 対戦相手が複数の場合
-            let getScores: number[] = [];
-            for (let i = 0; i < concatScores.length; i++) {
-              getScores.push(concatScores[i].score);
-            }
-            //Todo: 引き分けの判定をする。
-            var winnerNumber = getScores.indexOf(Math.max.apply(null, getScores));
-            winner = concatScores[winnerNumber].name;
-            console.log(winner + "さんの勝利");
-            setStage(3);
+              var winner: string = "nobody";
+              var upStage: number = 0;
 
-            upStage = 1;
-          }
+              // 最後の人だった場合
+              if (concatScores.length === doc.data().userNameList.length) {
+                console.log("finish");
+                // 対戦相手が複数の場合
+                let getScores: number[] = [];
+                for (let i = 0; i < concatScores.length; i++) {
+                  getScores.push(concatScores[i].score);
+                }
+                //Todo: 引き分けの判定をする。
+                var winnerNumber = getScores.indexOf(Math.max.apply(null, getScores));
+                winner = concatScores[winnerNumber].name;
+                console.log(winner + "さんの勝利");
+                setStage(3);
 
-          collection_game.doc(doc.id)
-            .set({
-              gameID: doc.data().gameID,
-              roomID: doc.data().roomID,
-              userNameList: doc.data().userNameList,
-              userIDList: doc.data().userIDList,
-              readListFlag: doc.data().readListFlag,
-              decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
-              stage: 2 + upStage,
-              scores: concatScores,
-              winner: winner,
-            })
-            .then(snapshot => {
-              console.log("snapshot = " + snapshot);
-            })
-            .catch(err => {
-              console.log("err = " + err);
+                upStage = 1;
+              }
+
+              collection_game.doc(doc.id)
+              .set({
+                gameID: doc.data().gameID,
+                roomID: doc.data().roomID,
+                userNameList: doc.data().userNameList,
+                userIDList: doc.data().userIDList,
+                readListFlag: doc.data().readListFlag,
+                decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
+                stage: 2 + upStage,
+                scores: concatScores,
+                winner: winner,
+              })
+              .then(snapshot => {
+                console.log("snapshot = " + snapshot);
+              })
+              .catch(err => {
+                console.log("err = " + err);
+              });
+
+
+
             });
+            })
+          .catch(err => {
+            console.log('Error getting documents', err);
+          });
+        })
 
-
-
-        });
       })
       .catch(err => {
         console.log('Error getting documents', err);

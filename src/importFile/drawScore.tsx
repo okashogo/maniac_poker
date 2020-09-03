@@ -1,15 +1,15 @@
 import getHashProperties from './getHashProperties';
 import { roles } from './testdb';
 
-export default function drawScore(hands: any[]) {
+export default function drawScore(hands: any[],rolesTmp: any[]) {
   // export default function drawScore(hands: any[], scoresLength: number) {
   var handsTmp = hands.concat();
   var elementList: any[] = [];
 
-  for (let i = 0; i < roles.length; i++) {
+  for (let i = 0; i < rolesTmp.length; i++) {
     var pairCount = 0;
     for (let j = 0; j < handsTmp.length; j++) {
-      if (roles[i].contain.includes(handsTmp[j].name)) {
+      if (rolesTmp[i].contain.includes(handsTmp[j].name)) {
         pairCount += 1;
       }
       // // pairがなかったときのみ出力
@@ -17,7 +17,7 @@ export default function drawScore(hands: any[]) {
       //   elementList.push([handsTmp[j].name, 1]);
       // }
     }
-    elementList.push({ pairName: roles[i].name, pairsCount: pairCount })
+    elementList.push({ pairName: rolesTmp[i].name, pairsCount: pairCount })
   }
 
   return elementList;
