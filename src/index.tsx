@@ -385,8 +385,9 @@ function App() {
             } />
           </div>
 
-          <div>
+          <div>タイトル選択：
             <select onChange={(e) => onChangeSelectbox(e.target.value)}>
+              <option value=""></option>
               {titles.map((data) => {
                 return <option value={data}>{data}</option>
               })}
