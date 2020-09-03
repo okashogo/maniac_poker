@@ -3,8 +3,8 @@ import firebase from "firebase";
 import { collection_title } from "./index";
 // import firebase from "firebase";
 
-export default function Create(props: any) {
-  console.log("Create_render");
+export default function TitleEdit(props: any) {
+  console.log("title_edit_render");
 
   const [title, setTitle] = useState("");
   const [cardsAry, setCard] = useState([{ name: "", img: "" }]);
@@ -101,7 +101,7 @@ export default function Create(props: any) {
     var rolesAryTmp = rolesAry;
     rolesAry.forEach((role, roleKey) =>
       role.contain.forEach((contain, containKey) => {
-        if (contain == cardsAry[key].name) {
+        if (contain === cardsAry[key].name) {
           rolesAryTmp[roleKey].contain.splice(containKey, 1);
         }
       })

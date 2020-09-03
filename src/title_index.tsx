@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import firebase from "firebase";
 import { collection_title } from "./index";
-import Create from './create';
+import TitleEdit from './title_edit';
 // import firebase from "firebase";
 
 export default function TitleIndex() {
+  console.log("title_index_render");
 
   const [newTitle, setNewTitle] = useState("");
-  const [slectTitleFlag, setSlectTitleFlag] = useState(false);
+  const [slectTitleFlag, setSlectTitleFlag] = useState("");
   const [titles, setTitles] = useState([""]);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function TitleIndex() {
 
   const dom = (
     <div>
-      {!slectTitleFlag &&
+      {slectTitleFlag === "" &&
         <div>
           !slectTitleFlag &&
       <h2>タイトル一覧</h2>
@@ -55,7 +56,7 @@ export default function TitleIndex() {
                   <tr>
                     <td>{data}</td>
                     <td><button className="btn btn-primary" onClick={() => {
-                      setSlectTitleFlag(true);
+                      setSlectTitleFlag(data);
                     }}>編集</button></td>
                   </tr>
                 )
@@ -70,8 +71,8 @@ export default function TitleIndex() {
           </table>
         </div>
       }
-      {slectTitleFlag &&
-        <Create slectTitle={slectTitleFlag}/>
+      {slectTitleFlag !== "" &&
+        <TitleEdit slectTitle={slectTitleFlag}/>
       }
     </div>
   )

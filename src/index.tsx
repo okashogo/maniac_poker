@@ -38,7 +38,7 @@ export const collection_title = db.collection('title');
 
 function Img(props: any) {
   // 最初のnullはカウントしない
-  return <img style={{ height: "150px" }} src={props.src} />;
+  return <img style={{ height: "150px" }} src={props.src} alt={props.src}/>;
 }
 
 function App() {
@@ -104,7 +104,7 @@ function App() {
     setGameID(randomGameID);
     var randomMyID = randomChar();
 
-    if (nowTitle == "") {
+    if (nowTitle === "") {
       alert("タイトルを選択してください。");
       return;
     }
