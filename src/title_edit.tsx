@@ -7,13 +7,13 @@ export default function TitleEdit(props: any) {
   console.log("title_edit_render");
 
   const [title, setTitle] = useState("");
-  const [cardsAry, setCard] = useState([{ name: "", img: "" }]);
-  const [rolesAry, setRoles] = useState([{ name: "", contain: ["",] }]);
+  const [cards, setCard] = useState([{ name: "", img: "" }]);
+  const [roles, setRoles] = useState([{ name: "", contain: ["",] }]);
 
   const [newCardsAry, setNewCard] = useState({ name: "", img: "" });
   const [createFlag, setCreateFlag] = useState(false);
   const [newRole, setNewRole] = useState("");
-  console.log(cardsAry);
+  console.log(cards);
 
   useEffect(() => {
     console.log("run useEffect");
@@ -29,13 +29,14 @@ export default function TitleEdit(props: any) {
     setCreateFlag(false);
   }, [props, createFlag]);
 
+  // onClickAllStore はテスト用、最後に消す
   const onClickAllStore = () => {
     collection_title.where('title', '==', title).get().then(snapshot => {
       if (snapshot.empty) {
         collection_title.add({
           title: title,
-          cards: cardsAry,
-          roles: rolesAry,
+          cards: cards,
+          roles: roles,
           updateAt: firebase.firestore.FieldValue.serverTimestamp(),
         })
           .then(doc => {
@@ -52,8 +53,8 @@ export default function TitleEdit(props: any) {
           collection_title.doc(doc.id)
             .set({
               title: title,
-              cards: cardsAry,
-              roles: rolesAry,
+              cards: cards,
+              roles: roles,
               updateAt: firebase.firestore.FieldValue.serverTimestamp(),
             })
             .then(snapshot => {
@@ -69,7 +70,7 @@ export default function TitleEdit(props: any) {
     })
   }
 
-  const onClickCardsEdit = () => {
+  const onClickCardsUpdate = () => {
     collection_title.where('title', '==', title).get().then(snapshot => {
       if (snapshot.empty) {
         console.log("error: 同じタイトル名のDBがありません。")
@@ -81,8 +82,8 @@ export default function TitleEdit(props: any) {
           collection_title.doc(doc.id)
             .set({
               title: title,
-              cards: cardsAry,
-              roles: rolesAry,
+              cards: cards,
+              roles: roles,
               updateAt: firebase.firestore.FieldValue.serverTimestamp(),
             })
             .then(snapshot => {
@@ -98,16 +99,16 @@ export default function TitleEdit(props: any) {
   }
 
   const onClickCardsDelete = (key: number) => {
-    var rolesAryTmp = rolesAry;
-    rolesAry.forEach((role, roleKey) =>
+    var rolesTmp = roles;
+    roles.forEach((role, roleKey) =>
       role.contain.forEach((contain, containKey) => {
-        if (contain === cardsAry[key].name) {
-          rolesAryTmp[roleKey].contain.splice(containKey, 1);
+        if (contain === cards[key].name) {
+          rolesTmp[roleKey].contain.splice(containKey, 1);
         }
       })
     );
-    var cardsAryTmp = cardsAry;
-    cardsAryTmp.splice(key, 1);
+    var cardsTmp = cards;
+    cardsTmp.splice(key, 1);
 
     collection_title.where('title', '==', title).get().then(snapshot => {
       snapshot.forEach(doc => {
@@ -115,8 +116,8 @@ export default function TitleEdit(props: any) {
         collection_title.doc(doc.id)
           .set({
             title: title,
-            cards: cardsAryTmp,
-            roles: rolesAryTmp,
+            cards: cardsTmp,
+            roles: rolesTmp,
             updateAt: firebase.firestore.FieldValue.serverTimestamp(),
           })
           .then(snapshot => {
@@ -138,14 +139,14 @@ export default function TitleEdit(props: any) {
         collection_title.doc(doc.id)
           .set({
             title: title,
-            cards: cardsAry.concat(newCardsAry),
-            roles: rolesAry,
+            cards: cards.concat(newCardsAry),
+            roles: roles,
             updateAt: firebase.firestore.FieldValue.serverTimestamp(),
           })
           .then(snapshot => {
             console.log(snapshot);
-            var cardsAryTmp = cardsAry.concat();
-            setCard(cardsAryTmp.concat(newCardsAry));
+            var cardsTmp = cards.concat();
+            setCard(cardsTmp.concat(newCardsAry));
             // setCreateFlag(true);
           })
           .catch(err => {
@@ -157,16 +158,16 @@ export default function TitleEdit(props: any) {
 
   const onClickRolesInsert = () => {
     if (newRole !== "") {
-      var rolesAryTmp = rolesAry.concat();
-      rolesAryTmp.push({ name: newRole, contain: [] });
+      var rolesTmp = roles.concat();
+      rolesTmp.push({ name: newRole, contain: [] });
       collection_title.where('title', '==', title).get().then(snapshot => {
         snapshot.forEach(doc => {
           console.log(doc);
           collection_title.doc(doc.id)
             .set({
               title: title,
-              cards: cardsAry,
-              roles: rolesAryTmp,
+              cards: cards,
+              roles: rolesTmp,
               updateAt: firebase.firestore.FieldValue.serverTimestamp(),
             })
             .then(snapshot => {
@@ -183,15 +184,15 @@ export default function TitleEdit(props: any) {
   }
 
   const onClickRolesDelete = (roleKey: number) => {
-    rolesAry.splice(roleKey, 1);
+    roles.splice(roleKey, 1);
     collection_title.where('title', '==', title).get().then(snapshot => {
       snapshot.forEach(doc => {
         console.log(doc);
         collection_title.doc(doc.id)
           .set({
             title: title,
-            cards: cardsAry,
-            roles: rolesAry,
+            cards: cards,
+            roles: roles,
             updateAt: firebase.firestore.FieldValue.serverTimestamp(),
           })
           .then(snapshot => {
@@ -206,17 +207,17 @@ export default function TitleEdit(props: any) {
   }
 
   const onChangeRemoveChecked = (role: any, card: any, roleKey: number) => {
-    var rolesAryTmp = rolesAry.concat();
+    var rolesTmp = roles.concat();
     role.contain.splice(role.contain.indexOf(card.name), 1);
-    rolesAryTmp[roleKey].contain = role.contain;
+    rolesTmp[roleKey].contain = role.contain;
     collection_title.where('title', '==', title).get().then(snapshot => {
       snapshot.forEach(doc => {
         console.log(doc);
         collection_title.doc(doc.id)
           .set({
             title: title,
-            cards: cardsAry,
-            roles: rolesAryTmp,
+            cards: cards,
+            roles: rolesTmp,
             updateAt: firebase.firestore.FieldValue.serverTimestamp(),
           })
           .then(snapshot => {
@@ -231,16 +232,16 @@ export default function TitleEdit(props: any) {
   }
 
   const onChangeAddChecked = (role: any, card: any, roleKey: number) => {
-    var rolesAryTmp = rolesAry.concat();
-    rolesAryTmp[roleKey].contain = role.contain.concat(card.name);
+    var rolesTmp = roles.concat();
+    rolesTmp[roleKey].contain = role.contain.concat(card.name);
     collection_title.where('title', '==', title).get().then(snapshot => {
       snapshot.forEach(doc => {
         console.log(doc);
         collection_title.doc(doc.id)
           .set({
             title: title,
-            cards: cardsAry,
-            roles: rolesAryTmp,
+            cards: cards,
+            roles: rolesTmp,
             updateAt: firebase.firestore.FieldValue.serverTimestamp(),
           })
           .then(snapshot => {
@@ -277,16 +278,16 @@ export default function TitleEdit(props: any) {
           </tr>
         </thead>
         <tbody>
-          {cardsAry.map((data, key) => {
+          {cards.map((data, key) => {
             return (<tr key={"card" + key}>
               <td><input defaultValue={data.name} onChange={(e) => {
-                var setCardTmp = cardsAry;
+                var setCardTmp = cards;
                 setCardTmp[key].name = e.target.value;
                 setCard(setCardTmp);
               }} /></td>
               <td>{data.img}</td>
               <td>
-                <button className="btn btn-primary" onClick={onClickCardsEdit}>編集</button>
+                <button className="btn btn-primary" onClick={onClickCardsUpdate}>変更</button>
               </td>
               <td>
                 <button className="btn btn-danger" onClick={() => onClickCardsDelete(key)}>削除</button>
@@ -325,7 +326,7 @@ export default function TitleEdit(props: any) {
         <button className="btn btn-success" onClick={onClickRolesInsert}>追加</button>
       </div>
       <div className="row">
-        {rolesAry.map((role, roleKey) => {
+        {roles.map((role, roleKey) => {
           return (<div className="border border-success" style={{ display: "flex" }} >
             <div key={"rolename" + roleKey}>
               <div>{role.name}</div>
@@ -342,7 +343,7 @@ export default function TitleEdit(props: any) {
                   </tr>
                 </thead>
                 <tbody>
-                  {cardsAry.map((card, key) => {
+                  {cards.map((card, key) => {
                     if (role.contain.includes(card.name)) {
                       return (
                         <tr key={"role" + roleKey + "check" + key}>
