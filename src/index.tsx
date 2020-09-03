@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
@@ -92,6 +92,243 @@ function App() {
 
   // ---------------useEffect to--------------------------
 
+  const onClickMakeRoom = () => {
+    //ランダムなGammeIDを作成
+    var randomGameID = randomChar();
+    setGameID(randomGameID);
+    var randomMyID = randomChar();
+
+    // 初期設定
+    var cardsFirst: any[] = [];
+    for (let i = 0; i < cards.length; i++) {
+      cardsFirst[i] = {
+        img: cards[i].img,
+        name: cards[i].name,
+      };
+    }
+    cardsFirst = shuffle(cardsFirst);
+    // 初期設定終了
+    var handFirst = cardsFirst.slice(0, 5);
+    var deckFirst = cardsFirst.slice(5);
+    sethand(handFirst);
+
+    // DBにaddする
+    collection_game.add({
+      gameID: randomGameID,
+      roomID: roomID,
+      userNameList: [myname,],
+      userIDList: [randomMyID,],
+      decks: deckFirst,
+      readListFlag: [],
+      stage: 1,
+      scores: [],
+      updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+      .then(doc => {
+        console.log("doc = " + doc);
+        setParent(true);
+        setStage(1);
+      })
+      .catch(error => {
+        console.log("error = " + error);
+      })
+  }
+
+  const onClickApplyRoom = () => {
+    var randomMyID = randomChar();
+
+    collection_game.where('stage', '==', 1)
+      .where('roomID', '==', applyID)
+      .orderBy('updateAt', 'desc')
+      .limit(1)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          return;
+        }
+
+        snapshot.forEach(async doc => {
+          console.log(doc.data(), 'data');
+          var userNameListTmp = doc.data().userNameList;
+          var userIDListTmp = doc.data().userIDList;
+
+          await collection_game.doc(doc.id)
+            .set({
+              gameID: doc.data().gameID,
+              roomID: doc.data().roomID,
+              userNameList: userNameListTmp.concat(myname),
+              userIDList: userIDListTmp.concat(randomMyID),
+              decks: doc.data().decks.slice(5),
+              readListFlag: [],
+              stage: 1,
+              scores: doc.data().scores,
+              updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+            })
+            .then(snapshot => {
+              console.log("snapshot = " + snapshot);
+              sethand(doc.data().decks.slice(0, 5));
+              setGameID(doc.data().gameID);
+              setStage(1);
+            })
+            .catch(err => {
+              console.log("err = " + err);
+            });
+
+        });
+      })
+      .catch(err => {
+        console.log('Error getting documents', err);
+      });
+  }
+
+  const onClickToMakeCard = async () => {
+    var titlesTmp:string[] = [];
+    await collection_title.get().then(async snapshot =>{
+      snapshot.forEach(doc => {
+        console.log(doc.data().title);
+        titlesTmp.push(doc.data().title);
+      })
+    })
+    setTitles(titlesTmp);
+    setIsCreate(true);
+    setStage(-1);
+  }
+
+  const onClickGameStart = () => {
+    console.log("start button!");
+    collection_game.where('stage', '==', 1).where('gameID', '==', gameID).get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          return;
+        }
+        snapshot.forEach(doc => {
+          collection_game.doc(doc.id)
+            .set({
+              gameID: doc.data().gameID,
+              roomID: doc.data().roomID,
+              usercount: doc.data().userNameList.length,
+              nextUser: 1,
+              userNameList: doc.data().userNameList,
+              userIDList: doc.data().userIDList,
+              readListFlag: [],
+              decks: doc.data().decks,
+              stage: 2,
+              scores: doc.data().scores,
+            })
+            .then(snapshot => {
+              console.log("snapshot = " + snapshot);
+              setStage(2);
+            })
+            .catch(err => {
+              console.log("err = " + err);
+            });
+
+        });
+      })
+      .catch(err => {
+        console.log('Error getting documents', err);
+      });
+  }
+
+  const onClickSetSelect = (key:number) => {
+    let newSetSelect: any[] = select.concat();
+    if (!newSetSelect.includes(key)) {
+      newSetSelect.push(key);
+    } else {
+      newSetSelect.forEach((item, index) => {
+        if (item === key) {
+          newSetSelect.splice(index, 1);
+        }
+      });
+    }
+    setSelect(newSetSelect);
+  }
+
+  const onClickDraw = () => {
+    collection_game.where('gameID', '==', gameID).get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          return;
+        }
+        snapshot.forEach(doc => {
+          console.log("doc =" + doc);
+          var decksTmp = doc.data().decks;
+          // output の結果を drawScore に渡す
+          var outputHnand = drawHand(decksTmp, hands, select);
+          sethand(outputHnand);
+
+          var outputScores = drawScore(outputHnand);
+          setScore(outputScores);
+          var myScoreTmp = calTotal(outputScores);
+          setTotal(myScoreTmp);
+          setSelect([null]);
+          setStage(3);
+
+          var concatScores = doc.data().scores.concat({ name: myname, score: myScoreTmp });
+
+          var winner: string = "nobody";
+          var upStage: number = 0;
+
+          // 最後の人だった場合
+          if (concatScores.length === doc.data().userNameList.length) {
+            console.log("finish");
+            // 対戦相手が複数の場合
+            let getScores: number[] = [];
+            for (let i = 0; i < concatScores.length; i++) {
+              getScores.push(concatScores[i].score);
+            }
+            //Todo: 引き分けの判定をする。
+            var winnerNumber = getScores.indexOf(Math.max.apply(null, getScores));
+            winner = concatScores[winnerNumber].name;
+            console.log(winner + "さんの勝利");
+            setStage(3);
+
+            upStage = 1;
+          }
+
+          collection_game.doc(doc.id)
+            .set({
+              gameID: doc.data().gameID,
+              roomID: doc.data().roomID,
+              userNameList: doc.data().userNameList,
+              userIDList: doc.data().userIDList,
+              readListFlag: doc.data().readListFlag,
+              decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
+              stage: 2 + upStage,
+              scores: concatScores,
+              winner: winner,
+            })
+            .then(snapshot => {
+              console.log("snapshot = " + snapshot);
+            })
+            .catch(err => {
+              console.log("err = " + err);
+            });
+
+
+
+        });
+      })
+      .catch(err => {
+        console.log('Error getting documents', err);
+      });
+  }
+
+  const onClickMakeNewtitle = () => {
+    collection_title.add({
+      title: newTitle,
+      cards: [{ name: "", img: "" }],
+      roles: [{ name: "", contain: ["",] }],
+      updateAt: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+      .then(doc => {
+        console.log("doc = " + doc);
+        setTitles(titles.concat(newTitle));
+      })
+      .catch(error => {
+        console.log("error = " + error);
+      })
+  }
   // ---------------render from--------------------------
   const element = (
     <div className="container-fluid">
@@ -110,47 +347,7 @@ function App() {
             } />
 
             <button className="btn btn-primary"
-              onClick={() => {
-                //ランダムなGammeIDを作成
-                var randomGameID = randomChar();
-                setGameID(randomGameID);
-                var randomMyID = randomChar();
-
-                // 初期設定
-                var cardsFirst: any[] = [];
-                for (let i = 0; i < cards.length; i++) {
-                  cardsFirst[i] = {
-                    img: cards[i].img,
-                    name: cards[i].name,
-                  };
-                }
-                cardsFirst = shuffle(cardsFirst);
-                // 初期設定終了
-                var handFirst = cardsFirst.slice(0, 5);
-                var deckFirst = cardsFirst.slice(5);
-                sethand(handFirst);
-
-                // DBにaddする
-                collection_game.add({
-                  gameID: randomGameID,
-                  roomID: roomID,
-                  userNameList: [myname,],
-                  userIDList: [randomMyID,],
-                  decks: deckFirst,
-                  readListFlag: [],
-                  stage: 1,
-                  scores: [],
-									updateAt: firebase.firestore.FieldValue.serverTimestamp(),
-                })
-                  .then(doc => {
-                    console.log("doc = " + doc);
-                    setParent(true);
-                    setStage(1);
-                  })
-                  .catch(error => {
-                    console.log("error = " + error);
-                  })
-              }}>
+              onClick={onClickMakeRoom}>
               部屋を作る
               </button>
           </div>
@@ -161,70 +358,14 @@ function App() {
             } />
 
             <button className="btn btn-primary"
-              onClick={() => {
-                var randomMyID = randomChar();
-
-								collection_game.where('stage', '==', 1)
-									.where('roomID', '==', applyID)
-									.orderBy('updateAt', 'desc')
-									.limit(1)
-									.get()
-                  .then(snapshot => {
-                    if (snapshot.empty) {
-                      return;
-                    }
-
-                    snapshot.forEach(async doc => {
-											console.log(doc.data(), 'data');
-                      var userNameListTmp = doc.data().userNameList;
-                      var userIDListTmp = doc.data().userIDList;
-
-                      await collection_game.doc(doc.id)
-                        .set({
-                          gameID: doc.data().gameID,
-                          roomID: doc.data().roomID,
-                          userNameList: userNameListTmp.concat(myname),
-                          userIDList: userIDListTmp.concat(randomMyID),
-                          decks: doc.data().decks.slice(5),
-                          readListFlag: [],
-                          stage: 1,
-                          scores: doc.data().scores,
-                          updateAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        })
-                        .then(snapshot => {
-                          console.log("snapshot = " + snapshot);
-                          sethand(doc.data().decks.slice(0, 5));
-                          setGameID(doc.data().gameID);
-                          setStage(1);
-                        })
-                        .catch(err => {
-                          console.log("err = " + err);
-                        });
-
-                    });
-                  })
-                  .catch(err => {
-                    console.log('Error getting documents', err);
-                  });
-              }}>
-              申し込む
+              onClick={onClickApplyRoom}>
+              参加する
               </button>
           </div>
 
           <div>
             <button className="btn btn-info"
-              onClick={async () => {
-                var titlesTmp:string[] = [];
-                await collection_title.get().then(async snapshot =>{
-                  snapshot.forEach(doc => {
-                    console.log(doc.data().title);
-                    titlesTmp.push(doc.data().title);
-                  })
-                })
-                setTitles(titlesTmp);
-                setIsCreate(true);
-                setStage(-1);
-              }}
+              onClick={onClickToMakeCard}
             >カードを作る</button>
           </div>
         </div>
@@ -239,41 +380,7 @@ function App() {
 
           {parent &&
             <button className="btn btn-primary"
-              onClick={() => {
-                console.log("start button!");
-                collection_game.where('stage', '==', 1).where('gameID', '==', gameID).get()
-                  .then(snapshot => {
-                    if (snapshot.empty) {
-                      return;
-                    }
-                    snapshot.forEach(doc => {
-                      collection_game.doc(doc.id)
-                        .set({
-                          gameID: doc.data().gameID,
-                          roomID: doc.data().roomID,
-                          usercount: doc.data().userNameList.length,
-                          nextUser: 1,
-                          userNameList: doc.data().userNameList,
-                          userIDList: doc.data().userIDList,
-                          readListFlag: [],
-                          decks: doc.data().decks,
-                          stage: 2,
-                          scores: doc.data().scores,
-                        })
-                        .then(snapshot => {
-                          console.log("snapshot = " + snapshot);
-                          setStage(2);
-                        })
-                        .catch(err => {
-                          console.log("err = " + err);
-                        });
-
-                    });
-                  })
-                  .catch(err => {
-                    console.log('Error getting documents', err);
-                  });
-              }}>ゲームスタート</button>
+              onClick={onClickGameStart}>ゲームスタート</button>
           }
 
           <div>ユーザー一覧</div>
@@ -296,19 +403,7 @@ function App() {
               return (
                 <div key={key} className="col-2 text-center"
                   style={{ background: bgcChange(key, select) }}
-                  onClick={() => {
-                    let newSetSelect: any[] = select.concat();
-                    if (!newSetSelect.includes(key)) {
-                      newSetSelect.push(key);
-                    } else {
-                      newSetSelect.forEach((item, index) => {
-                        if (item === key) {
-                          newSetSelect.splice(index, 1);
-                        }
-                      });
-                    }
-                    setSelect(newSetSelect);
-                  }}
+                  onClick={() => onClickSetSelect(key)}
                 >
                   {data.name}
                   <h1>
@@ -346,83 +441,7 @@ function App() {
 
       {stage === 2 &&
         // ---------------stage = 2 from (ドロー)--------------------------
-        <button className="btn btn-primary" onClick={() => {
-          collection_game.where('gameID', '==', gameID).get()
-            .then(snapshot => {
-              if (snapshot.empty) {
-                return;
-              }
-              snapshot.forEach(doc => {
-                console.log("doc =" + doc);
-                var decksTmp = doc.data().decks;
-                // output の結果を drawScore に渡す
-                var outputHnand = drawHand(decksTmp, hands, select);
-                sethand(outputHnand);
-
-                var outputScores = drawScore(outputHnand);
-                console.log("outputScores");
-                console.log(outputScores);
-                console.log("outputScores");
-                setScore(outputScores);
-                var myScoreTmp = calTotal(outputScores);
-                setTotal(myScoreTmp);
-                setSelect([null]);
-                setStage(3);
-
-                var concatScores = doc.data().scores.concat({ name: myname, score: myScoreTmp });
-
-                var winner: string = "nobody";
-                var upStage: number = 0;
-
-                // 最後の人だった場合
-                if (concatScores.length === doc.data().userNameList.length) {
-                  console.log("finish");
-                  // 対戦相手が複数の場合
-                  let getScores: number[] = [];
-                  for (let i = 0; i < concatScores.length; i++) {
-                    getScores.push(concatScores[i].score);
-                  }
-                  console.log(getScores);
-                  console.log(Math.max.apply(null, getScores));
-                  console.log(getScores.indexOf(Math.max.apply(null, getScores)));
-
-                  //Todo: 引き分けの判定をする。
-                  var winnerNumber = getScores.indexOf(Math.max.apply(null, getScores));
-                  winner = concatScores[winnerNumber].name;
-                  console.log(winner + "さんの勝利");
-                  setStage(3);
-
-                  upStage = 1;
-                }
-
-                collection_game.doc(doc.id)
-                  .set({
-                    gameID: doc.data().gameID,
-                    roomID: doc.data().roomID,
-                    userNameList: doc.data().userNameList,
-                    userIDList: doc.data().userIDList,
-                    readListFlag: doc.data().readListFlag,
-                    decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
-                    stage: 2 + upStage,
-                    scores: concatScores,
-                    winner: winner,
-                  })
-                  .then(snapshot => {
-                    console.log("snapshot = " + snapshot);
-                  })
-                  .catch(err => {
-                    console.log("err = " + err);
-                  });
-
-
-
-              });
-            })
-            .catch(err => {
-              console.log('Error getting documents', err);
-            });
-
-        }}>
+        <button className="btn btn-primary" onClick={onClickDraw}>
           ドロー
         </button>
         // ---------------stage = 2 to (ドロー)--------------------------
@@ -456,21 +475,7 @@ function App() {
                     <td><input onChange={(e) =>
                       setNewTitle(e.target.value)
                     }/></td>
-                    <td><button className="btn btn-success" onClick={()=>{
-                      collection_title.add({
-                        title: newTitle,
-                        cards: [{ name: "", img: "" }],
-                        roles: [{ name: "", contain: ["",] }],
-                        updateAt: firebase.firestore.FieldValue.serverTimestamp(),
-                      })
-                        .then(doc => {
-                          console.log("doc = " + doc);
-                          setTitles(titles.concat(newTitle));
-                        })
-                        .catch(error => {
-                          console.log("error = " + error);
-                        })
-                    }}>追加</button></td>
+                    <td><button className="btn btn-success" onClick={onClickMakeNewtitle}>追加</button></td>
                   </tr>
                 </tbody>
               </table>
