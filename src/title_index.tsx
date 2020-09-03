@@ -41,8 +41,7 @@ export default function TitleIndex() {
     <div>
       {slectTitleFlag === "" &&
         <div>
-          !slectTitleFlag &&
-      <h2>タイトル一覧</h2>
+          <h2>タイトル一覧</h2>
           <table className="table table-striped">
             <thead>
               <tr>
@@ -72,7 +71,7 @@ export default function TitleIndex() {
         </div>
       }
       {slectTitleFlag !== "" &&
-        <TitleEdit slectTitle={slectTitleFlag}/>
+        <TitleEdit slectTitle={slectTitleFlag} />
       }
     </div>
   )

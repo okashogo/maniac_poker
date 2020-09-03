@@ -7,6 +7,7 @@ import "firebase/auth";
 import firebase from "firebase";
 
 import TitleIndex from './title_index';
+import Battle from './battle';
 import { firebaseConfig } from './firebaseConfig';
 import shuffle from './importFile/shuffle';
 import drawScore from './importFile/drawScore';
@@ -23,7 +24,7 @@ firebase.analytics();
 export const auth = firebase.auth();
 export const db = firebase.firestore();
 
-const collection_game = db.collection('game');
+export const collection_game = db.collection('game');
 export const collection_title = db.collection('title');
 // gameテーブルに保存するカラム
 // gameID:
@@ -36,7 +37,7 @@ export const collection_title = db.collection('title');
 // scores:
 // winner:
 
-function Img(props: any) {
+export default function Img(props: any) {
   // 最初のnullはカウントしない
   return <img style={{ height: "150px" }} src={props.src} alt={props.src}/>;
 }
@@ -52,10 +53,7 @@ function App() {
   const [isTitleIndex, setIsTitleIndex] = useState(false);
   const [parent, setParent] = useState(false);
   const [hands, sethand] = useState([{ name: "", img: "", element1: "", element2: "" }]);
-  const [select, setSelect] = useState([null]);
   const [nowTitle, setNowTitle] = useState("");
-  const [scores, setScore]: any[] = useState([{ pairName: "", pairsCount: 0 }]);
-  const [total, setTotal] = useState(0);
   const [titles, setTitles] = useState([""]);
 
   // ---------------useEffect from--------------------------
@@ -253,102 +251,6 @@ function App() {
       });
   }
 
-  const onClickSetSelect = (key: number) => {
-    let newSetSelect: any[] = select.concat();
-    if (!newSetSelect.includes(key)) {
-      newSetSelect.push(key);
-    } else {
-      newSetSelect.forEach((item, index) => {
-        if (item === key) {
-          newSetSelect.splice(index, 1);
-        }
-      });
-    }
-    setSelect(newSetSelect);
-  }
-
-  const onClickDraw = () => {
-    collection_game.where('gameID', '==', gameID).get()
-      .then(snapshot => {
-        if (snapshot.empty) {
-          return;
-        }
-        snapshot.forEach(doc => {
-          console.log("doc =" + doc);
-          var decksTmp = doc.data().decks;
-          // output の結果を drawScore に渡す
-          var outputHnand = drawHand(decksTmp, hands, select);
-          sethand(outputHnand);
-
-          var rolesTmp: any[];
-          collection_title.where('title', '==', nowTitle).get()
-            .then(snapshot => {
-              snapshot.forEach(async doc_title => {
-                rolesTmp = doc_title.data().roles;
-
-                var outputScores = drawScore(outputHnand, rolesTmp);
-                setScore(outputScores);
-                var myScoreTmp = calTotal(outputScores);
-                setTotal(myScoreTmp);
-                setSelect([null]);
-                setStage(3);
-
-                var concatScores = doc.data().scores.concat({ name: myname, score: myScoreTmp });
-
-                var winner: string = "nobody";
-                var upStage: number = 0;
-
-                // 最後の人だった場合
-                if (concatScores.length === doc.data().userNameList.length) {
-                  console.log("finish");
-                  // 対戦相手が複数の場合
-                  let getScores: number[] = [];
-                  for (let i = 0; i < concatScores.length; i++) {
-                    getScores.push(concatScores[i].score);
-                  }
-                  //Todo: 引き分けの判定をする。
-                  var winnerNumber = getScores.indexOf(Math.max.apply(null, getScores));
-                  winner = concatScores[winnerNumber].name;
-                  console.log(winner + "さんの勝利");
-                  setStage(3);
-
-                  upStage = 1;
-                }
-
-                collection_game.doc(doc.id)
-                  .set({
-                    gameID: doc.data().gameID,
-                    roomID: doc.data().roomID,
-                    userNameList: doc.data().userNameList,
-                    userIDList: doc.data().userIDList,
-                    readListFlag: doc.data().readListFlag,
-                    decks: decksTmp.slice(0, decksTmp.length - 1 - select.length),
-                    stage: 2 + upStage,
-                    scores: concatScores,
-                    winner: winner,
-                  })
-                  .then(snapshot => {
-                    console.log("snapshot = " + snapshot);
-                  })
-                  .catch(err => {
-                    console.log("err = " + err);
-                  });
-
-
-
-              });
-            })
-            .catch(err => {
-              console.log('Error getting documents', err);
-            });
-        })
-
-      })
-      .catch(err => {
-        console.log('Error getting documents', err);
-      });
-  }
-
   const onChangeSelectbox = (title: string) => {
     setNowTitle(title);
   }
@@ -426,57 +328,9 @@ function App() {
       {stage >= 2 &&
         // ---------------stage ＞= 2 from (ゲーム内容)--------------------------
         <div>
-          <div>gameID: {gameID}</div>
-          <div>自分の名前：{myname}</div>
-          <div>相手の名前一覧</div>
-          <div style={{ display: "flex" }} className="row">
-            <div className="col-1"></div>
-            {hands.map((data, key) => {
-              return (
-                <div key={key} className="col-2 text-center"
-                  style={{ background: bgcChange(key, select) }}
-                  onClick={() => onClickSetSelect(key)}
-                >
-                  {data.name}
-                  <h1>
-                    <Img src={data.img} />
-                  </h1>
-                </div>
-              )
-            })}
-            <div className="col-1">得点</div>
-          </div>
-          {stage >= 3 &&
-            <div style={{ display: "flex" }} className="row">
-              <div className="col-1">
-              </div>
-              <div className="col-3">
-                {scores.map((data: { [key: string]: any; }) => {
-                  if (data.pairsCount >= 1) {
-                    return <div>{data.pairName}</div>
-                  }
-                })}
-              </div>
-              <div className="col-2">
-                {scores.map((data: { [key: string]: any; }) => {
-                  if (data.pairsCount >= 1) {
-                    return <div>{changePairname(data.pairsCount)}</div>
-                  }
-                })}
-              </div>
-              <h1 style={{ color: "red" }}>{total}</h1>
-            </div>
-          }
+          <Battle nowTitle={nowTitle} gameID={gameID} myname={myname} hands={hands}/>
         </div>
         // ---------------stage ＞= 2 to (ゲーム内容)--------------------------
-      }
-
-      {stage === 2 &&
-        // ---------------stage = 2 from (ドロー)--------------------------
-        <button className="btn btn-primary" onClick={onClickDraw}>
-          ドロー
-        </button>
-        // ---------------stage = 2 to (ドロー)--------------------------
       }
 
       {isTitleIndex &&
