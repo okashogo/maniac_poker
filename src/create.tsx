@@ -14,8 +14,9 @@ export default function Create(props: any) {
   const [rolesAry, setRoles] = useState([{ name: "", contain: ["",] }]);
 
   const [newCardsAry, setNewCard] = useState({ name: "", img: "" });
-  const [newCardsFlag, setNewCardsFlag] = useState(false);
+  const [createFlag, setCreateFlag] = useState(false);
   const [newRole, setNewRole] = useState("");
+  console.log(cardsAry);
 
   useEffect(() => {
     console.log("run useEffect");
@@ -28,8 +29,8 @@ export default function Create(props: any) {
     }).catch(err => {
       console.log('Error getting documents', err);
     });
-    setNewCardsFlag(false);
-  }, [props, newCardsFlag]);
+    setCreateFlag(false);
+  }, [props, createFlag]);
 
   const dom = (
     <div>
@@ -131,21 +132,16 @@ export default function Create(props: any) {
                 </td>
                 <td>
                   <button className="btn btn-danger" onClick={() => {
-                    console.log(key);
-                    console.log(cardsAry[key]);
-                    console.log(cardsAry[key].name);
                     var rolesAryTmp = rolesAry;
                     rolesAry.forEach((role,roleKey)  =>
                       role.contain.forEach((contain, containKey) => {
                         if(contain == cardsAry[key].name){
                           rolesAryTmp[roleKey].contain.splice(containKey, 1);
-                          // console.log(rolesAryTmp[roleKey].contain);
                         }
                       })
                     );
                     var cardsAryTmp = cardsAry;
                     cardsAryTmp.splice(key, 1);
-                    // console.log(cardsAry);
 
                     collection_title.where('title', '==', title).get().then(snapshot => {
                         snapshot.forEach(doc => {
@@ -159,7 +155,7 @@ export default function Create(props: any) {
                             })
                             .then(snapshot => {
                               console.log(snapshot);
-                              setNewCardsFlag(true);
+                              setCreateFlag(true);
                             })
                             .catch(err => {
                               console.log(err);
@@ -173,7 +169,7 @@ export default function Create(props: any) {
               </tr>)
             })}
             <tr>
-              <td><input defaultValue={newCardsAry.name} onChange={(e) => {
+              <td><input key="newCardInput" defaultValue={newCardsAry.name} onChange={(e) => {
                 var newCardsAryTmp = newCardsAry;
                 newCardsAryTmp.name = e.target.value;
                 setNewCard(newCardsAryTmp);
@@ -197,7 +193,8 @@ export default function Create(props: any) {
                         })
                         .then(snapshot => {
                           console.log(snapshot);
-                          setNewCardsFlag(true);
+                          setCard(cardsAry.concat(newCardsAry));
+                          setCreateFlag(true);
                         })
                         .catch(err => {
                           console.log(err);
@@ -222,12 +219,9 @@ export default function Create(props: any) {
       </div>
       <div>
         <button className="btn btn-success" onClick={() => {
-          console.log('roles add');
           if(newRole !== ""){
             var rolesAryTmp = rolesAry.concat();
-            console.log(newRole);
             rolesAryTmp.push({name: newRole, contain: []});
-            console.log(rolesAryTmp);
             collection_title.where('title', '==', title).get().then(snapshot => {
               snapshot.forEach(doc => {
                 console.log(doc);
@@ -240,7 +234,7 @@ export default function Create(props: any) {
                   })
                   .then(snapshot => {
                     console.log(snapshot);
-                    setNewCardsFlag(true);
+                    setCreateFlag(true);
                     setNewRole("");
                   })
                   .catch(err => {
@@ -270,7 +264,7 @@ export default function Create(props: any) {
                       })
                       .then(snapshot => {
                         console.log(snapshot);
-                        setNewCardsFlag(true);
+                        setCreateFlag(true);
                       })
                       .catch(err => {
                         console.log(err);
@@ -308,7 +302,7 @@ export default function Create(props: any) {
                                   })
                                   .then(snapshot => {
                                     console.log(snapshot);
-                                    setNewCardsFlag(true);
+                                    setCreateFlag(true);
                                   })
                                   .catch(err => {
                                     console.log(err);
@@ -337,7 +331,7 @@ export default function Create(props: any) {
                                   })
                                   .then(snapshot => {
                                     console.log(snapshot);
-                                    setNewCardsFlag(true);
+                                    setCreateFlag(true);
                                   })
                                   .catch(err => {
                                     console.log(err);

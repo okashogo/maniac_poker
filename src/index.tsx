@@ -60,7 +60,6 @@ function App() {
   const [titles, setTitles] = useState([""]);
   const [slectTitleFlag, setSlectTitleFlag] = useState("");
 
-  const [crateFlag, setCrateFlag] = useState(false);
   const [newTitle, setNewTitle] = useState("");
 
   // ---------------useEffect from--------------------------
@@ -89,18 +88,7 @@ function App() {
 				});
 			});
 		}
-    if(crateFlag){
-      collection_title.onSnapshot(async snapshot => {
-        var titleList:string[] = [];
-        snapshot.docChanges().forEach(async change => {
-          const data = change.doc.data();
-          titleList.push(data.title);
-        });
-        setTitles(titleList);
-      });
-      setCrateFlag(false);
-    }
-	},[gameID,crateFlag]);
+	},[gameID]);
 
   // ---------------useEffect to--------------------------
 
@@ -477,7 +465,7 @@ function App() {
                       })
                         .then(doc => {
                           console.log("doc = " + doc);
-                          setCrateFlag(true);
+                          setTitles(titles.concat(newTitle));
                         })
                         .catch(error => {
                           console.log("error = " + error);
