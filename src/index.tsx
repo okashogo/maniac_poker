@@ -119,13 +119,14 @@ function App() {
     .then(snapshot => {
       snapshot.forEach(async doc => {
         cardsTmp = doc.data().cards;
+        console.log(cardsTmp);
       })
       // 初期設定
       var cardsFirst: any[] = [];
       for (let i = 0; i < cardsTmp.length; i++) {
         cardsFirst[i] = {
-          img: cards[i].img,
-          name: cards[i].name,
+          img: cardsTmp[i].img,
+          name: cardsTmp[i].name,
         };
       }
       cardsFirst = shuffle(cardsFirst);
